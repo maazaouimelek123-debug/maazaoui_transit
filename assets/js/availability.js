@@ -248,7 +248,8 @@
       } else if (next.dayOffset === 1) {
         detail = tpl(S.opensTomorrow, { t: fmtMin(next.start) });
       } else {
-        detail = tpl(S.opensOn, { d: S.days[next.wd].toLowerCase(), t: fmtMin(next.start) });
+        const dayName = lang === "fr" ? S.days[next.wd].toLowerCase() : S.days[next.wd];
+        detail = tpl(S.opensOn, { d: dayName, t: fmtMin(next.start) });
       }
     }
 
@@ -307,7 +308,7 @@
    * Monte le widget : met à jour toutes les cibles [data-av="..."] présentes dans la page.
    *   data-av="pill"    → élément .status (data-state + texte)
    *   data-av="title"   → titre (Ouvert maintenant…)
-   *   data-av="detail"  → détail (Ferme à 17:30…)
+   *   data-av="detail"  → détail (Ferme à 17:00…)
    *   data-av="badge"   → libellé de saison / férié
    *   data-av="clock"   → horloge locale HH:MM
    *   data-av="week"    → tableau hebdomadaire

@@ -111,7 +111,7 @@
     "off.v4.t": "Confidentiality",
     "off.v4.p": "Your invoices, prices and suppliers stay between us.",
     "off.t1.t": "Office opens",
-    "off.t1.p": "Creation of Maazaoui Transit, an independent customs brokerage office in Radès, at the gates of the port.",
+    "off.t1.p": "Creation of Maazaoui Transit, an independent customs brokerage office in Radès.",
     "off.t2.y": "2010 → today",
     "off.t2.t": "Import, export, economic regimes",
     "off.t2.p": "Support for SMEs, manufacturers and individuals across all operations: clearance, foreign trade titles, temporary admission, bonded warehouse.",

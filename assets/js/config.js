@@ -41,7 +41,8 @@ MZ.SITE = {
     /* Numéro WhatsApp au format international sans « + » ni espaces */
     whatsapp: "21699976872",
     email: "maazaouitransit@gmail.com",
-    /* Adresse du bureau. À COMPLÉTER : rue et numéro (ligne 1) dès que disponibles. */
+    /* Adresse du bureau. À COMPLÉTER : quand la rue et le numéro seront connus, les mettre en ligne 1
+       et déplacer la ville en ligne 2 (ex. line2: "Radès, Ben Arous · Tunisie"). */
     address: {
       line1: { fr: "Radès", en: "Radès" },
       line2: { fr: "Ben Arous, Tunisie", en: "Ben Arous, Tunisia" },

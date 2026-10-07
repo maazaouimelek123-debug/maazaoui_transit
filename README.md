@@ -26,7 +26,7 @@ Toutes les données modifiables sont dans **`assets/js/config.js`** :
 | --- | --- |
 | Téléphone / WhatsApp | +216 99 976 872 |
 | E-mail | maazaouitransit@gmail.com |
-| Adresse | Radès, Ben Arous — rue et numéro **à compléter** (`contact.address.line1`) |
+| Adresse | Radès, Ben Arous — rue et numéro **à compléter** : les saisir en `contact.address.line1` et déplacer « Radès » en `line2` |
 | Agrément | n° 776 |
 | Horaires | Lundi → vendredi 08:00–17:00 · samedi 08:00–14:00 · dimanche fermé |
 
