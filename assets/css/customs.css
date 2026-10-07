@@ -184,41 +184,34 @@
 .steps {
   position: relative;
   display: grid;
-  gap: 0;
-}
-
-.steps::before {
-  content: "";
-  position: absolute;
-  left: 23px;
-  top: 24px;
-  bottom: 24px;
-  width: 1px;
-  background: var(--line-strong);
-}
-
-.steps-progress {
-  position: absolute;
-  left: 23px;
-  top: 24px;
-  width: 1px;
-  height: 0;
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.6);
-  transition: height 0.2s linear;
+  gap: 18px;
 }
 
 .step {
-  position: relative;
+  position: sticky;
+  top: calc(var(--nav-h) + 18px + var(--i, 0) * 14px);
   display: grid;
   grid-template-columns: 48px 1fr;
   gap: clamp(18px, 3vw, 36px);
-  padding-block: clamp(1.6rem, 3vw, 2.4rem);
-  border-bottom: 1px solid var(--line);
+  padding: clamp(22px, 3vw, 34px);
+  min-height: 38vh;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, #141d33 0%, #0c1324 100%);
+  box-shadow: 0 -24px 60px -30px rgba(0, 0, 0, 0.9), 0 30px 60px -40px rgba(0, 0, 0, 0.8);
+  transform-origin: 50% 0;
+  transform: scale(calc(1 - var(--sp, 0) * 0.06));
+  filter: brightness(calc(1 - var(--sp, 0) * 0.45));
+  will-change: transform, filter;
 }
 
-.step:last-child {
-  border-bottom: 0;
+.step::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(60% 80% at 100% 0%, rgba(var(--accent-rgb), 0.1), transparent 60%);
+  pointer-events: none;
 }
 
 .step-num {
@@ -227,7 +220,6 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--bg);
   border: 1px solid var(--line-strong);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -249,6 +241,8 @@
   display: grid;
   gap: 8px;
   align-content: start;
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 900px) {
@@ -259,7 +253,7 @@
 }
 
 .step-body .h3 {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
 }
 
 .step-body p {
@@ -272,7 +266,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 .step-tags span {
@@ -286,10 +280,24 @@
   color: var(--text-3);
 }
 
+@media (max-width: 760px) {
+  .step {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    min-height: 0;
+    top: calc(var(--nav-h) + 10px + var(--i, 0) * 8px);
+  }
+}
+
 .process-aside {
-  position: sticky;
-  top: calc(var(--nav-h) + 24px);
   align-self: start;
+}
+
+@media (min-width: 1000px) {
+  .process-aside {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+  }
 }
 
 .process-grid {

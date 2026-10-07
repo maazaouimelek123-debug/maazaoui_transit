@@ -189,6 +189,7 @@
     "t.sv.c3.t": "Integrated customs clearance",
     "t.sv.c3.p": "Every shipment is cleared by Maazaoui Transit, licensed customs broker since 2010: classification, declaration, settlement, release.",
     "t.sv.c3.link": "See the group's customs expertise",
+    "t.sv.hint": "Scroll to explore",
 
     "t.ln.eyebrow": "Lanes",
     "t.ln.title": 'The corridors <span class="em">we operate.</span>',

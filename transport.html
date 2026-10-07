@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/ocean.css">
+  <link rel="stylesheet" href="assets/css/scroll.css">
 
   <script type="application/ld+json">
   {
@@ -62,6 +63,7 @@
   </div>
 
   <div class="page-veil" aria-hidden="true"></div>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="grain" aria-hidden="true"></div>
   <div class="cursor" aria-hidden="true"></div>
@@ -176,6 +178,7 @@
       </div>
     </section>
 
+    <div class="curtain">
     <!-- ========================================================= Marquee -->
     <div class="marquee" aria-hidden="true">
       <div class="marquee-track">
@@ -198,35 +201,37 @@
     </div>
 
     <!-- ======================================================== Services -->
-    <section class="section" id="services" aria-labelledby="services-title">
-      <div class="container">
-        <div class="section-head section-head--split">
-          <div>
-            <p class="eyebrow" data-reveal data-i18n="t.sv.eyebrow">Services</p>
-            <h2 class="h2" id="services-title" data-reveal style="--d:80" data-i18n="t.sv.title">Un seul interlocuteur, <span class="em">de l'usine à la mainlevée.</span></h2>
+    <section class="section hscroll" id="services" aria-labelledby="services-title" data-hscroll>
+      <div class="hscroll-sticky">
+        <div class="container">
+          <div class="section-head section-head--split">
+            <div>
+              <p class="eyebrow" data-reveal data-i18n="t.sv.eyebrow">Services</p>
+              <h2 class="h2" id="services-title" data-reveal style="--d:80" data-i18n="t.sv.title">Un seul interlocuteur, <span class="em">de l'usine à la mainlevée.</span></h2>
+            </div>
+            <div>
+              <p class="lead" data-reveal style="--d:160" data-i18n="t.sv.lead">Nous organisons le transport, nous suivons la marchandise et nous la dédouanons. Vous n'avez qu'un seul numéro à appeler.</p>
+              <p class="hscroll-hint" style="margin-top:18px" aria-hidden="true"><i></i><span data-i18n="t.sv.hint">Défiler pour explorer</span></p>
+            </div>
           </div>
-          <p class="lead" data-reveal style="--d:160" data-i18n="t.sv.lead">Nous organisons le transport, nous suivons la marchandise et nous la dédouanons. Vous n'avez qu'un seul numéro à appeler.</p>
         </div>
 
-        <div class="duo" data-reveal-stagger>
-          <article class="duo-card">
+        <div class="hscroll-track">
+          <article class="duo-card hs-card">
             <canvas data-canvas="waves-only" aria-hidden="true"></canvas>
             <span class="kicker" data-i18n="t.sv.sea.k">Océan</span>
             <h3 class="h3" data-i18n="t.sv.sea.t">Fret maritime</h3>
             <p data-i18n="t.sv.sea.p">Conteneurs complets (FCL) et groupage maritime (LCL) depuis et vers Radès et La Goulette. Réservation, suivi des escales, documentation (B/L), coordination au port.</p>
             <ul><li>FCL 20' · 40' · HC</li><li>LCL</li><li>Reefer</li><li>Ro-Ro</li></ul>
           </article>
-          <article class="duo-card">
+          <article class="duo-card hs-card">
             <canvas data-canvas="air-only" aria-hidden="true"></canvas>
             <span class="kicker" data-i18n="t.sv.air.k">Air</span>
             <h3 class="h3" data-i18n="t.sv.air.t">Fret aérien</h3>
             <p data-i18n="t.sv.air.p">Expéditions urgentes et marchandises sensibles via Tunis-Carthage : réservation sur vols directs ou en connexion, LTA, enlèvement et livraison rapide après dédouanement.</p>
             <ul><li data-i18n="t.sv.air.l1">Express</li><li>Standard</li><li data-i18n="t.sv.air.l3">Colis · palettes</li><li>LTA</li></ul>
           </article>
-        </div>
-
-        <div class="grid grid-3" style="margin-top:22px" data-reveal-stagger>
-          <article class="card" data-tilt="5">
+          <article class="card hs-card" data-tilt="5">
             <div class="flex center" style="justify-content:space-between">
               <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 8-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></div>
               <span class="card-idx">03</span>
@@ -234,7 +239,7 @@
             <h3 class="h4" data-i18n="t.sv.c1.t">Groupage</h3>
             <p data-i18n="t.sv.c1.p">Pour les volumes qui ne remplissent pas un conteneur : consolidation avec d'autres expéditions, départs réguliers, coût proportionnel au volume.</p>
           </article>
-          <article class="card" data-tilt="5">
+          <article class="card hs-card" data-tilt="5">
             <div class="flex center" style="justify-content:space-between">
               <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></div>
               <span class="card-idx">04</span>
@@ -242,7 +247,7 @@
             <h3 class="h4" data-i18n="t.sv.c2.t">Porte-à-porte</h3>
             <p data-i18n="t.sv.c2.p">Enlèvement chez le fournisseur, pré-acheminement, transport principal, dédouanement et livraison finale en Tunisie : un seul devis, un seul suivi.</p>
           </article>
-          <article class="card" data-tilt="5">
+          <article class="card hs-card" data-tilt="5">
             <div class="flex center" style="justify-content:space-between">
               <div class="card-icon" style="color:#d8b566;background:rgba(216,181,102,.1);border-color:rgba(216,181,102,.25)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5 12h14M12 16V8m0 0-3 3m3-3 3 3"/></svg></div>
               <span class="card-idx">05</span>
@@ -264,7 +269,7 @@
         <div class="section-head">
           <p class="eyebrow" data-reveal data-i18n="t.ln.eyebrow">Liaisons</p>
           <h2 class="h2" id="lanes-title" data-reveal style="--d:80" data-i18n="t.ln.title">Les corridors <span class="em">que nous opérons.</span></h2>
-          <p class="lead" data-reveal style="--d:160" data-i18n="t.ln.lead">Délais indicatifs de port à port ou d'aéroport à aéroport, hors dédouanement. Les autres destinations sont étudiées sur demande.</p>
+          <p class="lead" data-reveal style="--d:160" data-scrub-text data-i18n="t.ln.lead">Délais indicatifs de port à port ou d'aéroport à aéroport, hors dédouanement. Les autres destinations sont étudiées sur demande.</p>
         </div>
 
         <div class="board" data-reveal>
@@ -336,7 +341,7 @@
     </section>
 
     <!-- ========================================== Portail → Maazaoui Transit -->
-    <section class="section section--line portal-section portal-section--back" aria-labelledby="back-title">
+    <section class="section section--line portal-section portal-section--back" aria-labelledby="back-title" data-tint="216 181 102">
       <div class="container">
         <div class="section-head section-head--center">
           <p class="eyebrow" data-reveal data-i18n="t.bk.eyebrow">Le groupe</p>
@@ -446,6 +451,7 @@
         </div>
       </div>
     </section>
+    </div><!-- /.curtain -->
   </main>
 
   <footer class="footer">
@@ -504,5 +510,6 @@
   <script src="assets/js/canvas-flow.js" defer></script>
   <script src="assets/js/canvas-ocean.js" defer></script>
   <script src="assets/js/core.js" defer></script>
+  <script src="assets/js/scroll.js" defer></script>
 </body>
 </html>

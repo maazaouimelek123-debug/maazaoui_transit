@@ -710,7 +710,6 @@
     initReveal();
     initClipboard();
     initForm();
-    initSteps();
     initCanvases();
     initAvailability();
   }

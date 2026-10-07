@@ -14,6 +14,14 @@
 window.MZ = window.MZ || {};
 
 MZ.SITE = {
+  /* -------------------------------------------------------------- Interface */
+  ui: {
+    /* Défilement inertiel à la molette (bureau uniquement). */
+    smoothScroll: true,
+    /* Effets pilotés par le défilement (hero épinglé, cartes empilées…). */
+    scrollEffects: true,
+  },
+
   /* ---------------------------------------------------------------- Marque */
   brand: {
     name: "Maazaoui Transit",

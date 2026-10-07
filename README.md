@@ -13,6 +13,7 @@ Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présenta
 | Deux univers, un portail | Transition circulaire fluide entre les deux sites depuis le point cliqué, sans rechargement visible. |
 | Bilingue FR / EN | Bascule instantanée, mémorisée sur l'appareil. Le français est la langue par défaut et reste lisible sans JavaScript. |
 | Design génératif | Champ de flux (courants / corridors) sur la page douane, vagues et trajectoire aérienne sur la page transport. Pause automatique hors écran, rendu statique si l'utilisateur préfère réduire les animations. |
+| Expérience de défilement | Défilement inertiel à la molette, hero épinglé qui recule sous le « rideau » des sections, cartes empilées pour le parcours, section de services horizontale épinglée (transport), texte qui s'allume mot à mot, teinte d'ambiance évolutive, barre de progression. Désactivable dans `config.js` (`ui.smoothScroll`, `ui.scrollEffects`) et automatiquement coupé si l'utilisateur préfère réduire les animations. |
 | Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone et l'e-mail. |
 | Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
 | Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
@@ -59,12 +60,14 @@ assets/css/base.css        Jetons de design (deux thèmes), reset, typographie
 assets/css/components.css  Composants partagés (navigation, cartes, portail, formulaire…)
 assets/css/customs.css     Mise en page de la page douane
 assets/css/ocean.css       Mise en page de la page transport
+assets/css/scroll.css      Effets de défilement (actifs sous html.fx)
 assets/js/config.js        ★ Données métier modifiables
 assets/js/i18n.js          Dictionnaire anglais et bascule de langue
 assets/js/availability.js  Moteur d'horaires (fuseau, saisons, fériés)
 assets/js/canvas-flow.js   Animation « champ de flux »
 assets/js/canvas-ocean.js  Animation « vagues et trajectoire aérienne »
 assets/js/core.js          Orchestration de l'interface
+assets/js/scroll.js        Moteur des effets de défilement (une seule boucle rAF)
 ```
 
 ## Limites connues

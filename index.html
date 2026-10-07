@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/customs.css">
+  <link rel="stylesheet" href="assets/css/scroll.css">
 
   <script type="application/ld+json">
   {
@@ -71,6 +72,7 @@
   </div>
 
   <div class="page-veil" aria-hidden="true"></div>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="grain" aria-hidden="true"></div>
   <div class="cursor" aria-hidden="true"></div>
@@ -142,7 +144,7 @@
     <!-- ============================================================ Hero -->
     <section class="hero" aria-labelledby="hero-title">
       <canvas class="hero-canvas" data-canvas="flow" aria-hidden="true"></canvas>
-      <div class="hero-year" aria-hidden="true">2010</div>
+      <div class="hero-year" aria-hidden="true" data-parallax="-0.12">2010</div>
 
       <div class="container">
         <div class="hero-grid">
@@ -203,6 +205,7 @@
       </div>
     </section>
 
+    <div class="curtain">
     <!-- ========================================================= Marquee -->
     <div class="marquee" aria-hidden="true">
       <div class="marquee-track">
@@ -310,8 +313,7 @@
             </blockquote>
           </div>
 
-          <div class="steps" data-reveal-stagger>
-            <div class="steps-progress" aria-hidden="true"></div>
+          <div class="steps" data-stack>
 
             <div class="step">
               <div class="step-num">01</div>
@@ -411,8 +413,8 @@
           <div class="about-copy">
             <p class="eyebrow" data-reveal data-i18n="off.eyebrow">Le bureau</p>
             <h2 class="h2" id="office-title" data-reveal style="--d:80" data-i18n="off.title">Un bureau indépendant <span class="em">depuis 2010.</span></h2>
-            <p data-reveal style="--d:160" data-i18n="off.p1">Maazaoui Transit est un bureau de commissionnaire en douane fondé en 2010. Nous traitons chaque dossier nous-mêmes, sans sous-traitance ni intermédiaire : la personne qui lit votre facture est celle qui dépose votre déclaration et répond à vos questions.</p>
-            <p data-reveal style="--d:220" data-i18n="off.p2">Cette proximité est notre méthode. Elle permet de repérer tôt une incohérence documentaire, de choisir le bon régime et d'éviter les retards qui coûtent cher en magasinage et en surestaries.</p>
+            <p data-reveal style="--d:160" data-scrub-text data-i18n="off.p1">Maazaoui Transit est un bureau de commissionnaire en douane fondé en 2010. Nous traitons chaque dossier nous-mêmes, sans sous-traitance ni intermédiaire : la personne qui lit votre facture est celle qui dépose votre déclaration et répond à vos questions.</p>
+            <p data-reveal style="--d:220" data-scrub-text data-i18n="off.p2">Cette proximité est notre méthode. Elle permet de repérer tôt une incohérence documentaire, de choisir le bon régime et d'éviter les retards qui coûtent cher en magasinage et en surestaries.</p>
 
             <div class="values" data-reveal-stagger>
               <div class="value"><b data-i18n="off.v1.t">Rigueur documentaire</b><span data-i18n="off.v1.p">Chaque pièce est relue avant saisie. Aucune déclaration ne part sans contrôle humain.</span></div>
@@ -458,7 +460,7 @@
     </section>
 
     <!-- ============================================== Portail → transport -->
-    <section class="section section--line portal-section" id="transport" aria-labelledby="portal-title">
+    <section class="section section--line portal-section" id="transport" aria-labelledby="portal-title" data-tint="63 217 203">
       <div class="container">
         <div class="section-head section-head--center">
           <p class="eyebrow" data-reveal data-i18n="por.eyebrow">Nouveau</p>
@@ -595,6 +597,7 @@
         </div>
       </div>
     </section>
+    </div><!-- /.curtain -->
   </main>
 
   <!-- ====================================================== Pied de page -->
@@ -656,5 +659,6 @@
   <script src="assets/js/canvas-flow.js" defer></script>
   <script src="assets/js/canvas-ocean.js" defer></script>
   <script src="assets/js/core.js" defer></script>
+  <script src="assets/js/scroll.js" defer></script>
 </body>
 </html>
