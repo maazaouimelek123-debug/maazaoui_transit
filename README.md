@@ -18,21 +18,27 @@ Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présenta
 | Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
 | Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
 
-## À compléter avant la mise en ligne
+## Données du bureau
 
 Toutes les données modifiables sont dans **`assets/js/config.js`** :
 
-1. `contact.phone`, `contact.phoneRaw`, `contact.whatsapp`, `contact.email` ;
-2. `contact.address.line1` / `line2` et `contact.mapsQuery` (lien « Itinéraire ») ;
-3. `brand.license` — numéro d'agrément du commissionnaire ;
-4. `hours.regular`, `hours.seasons` (horaires d'été), `hours.overrides` (Ramadan…), `hours.closures` (congés), `hours.movingHolidays` (Aïd, Mouled… à saisir chaque année) ;
-5. `transport.*` — coordonnées propres à By Ocean and Air Transport, si différentes.
+| Donnée | Valeur en place |
+| --- | --- |
+| Téléphone / WhatsApp | +216 99 976 872 |
+| E-mail | maazaouitransit@gmail.com |
+| Adresse | Radès, Ben Arous — rue et numéro **à compléter** (`contact.address.line1`) |
+| Agrément | n° 776 |
+| Horaires | Lundi → vendredi 08:00–17:00 · samedi 08:00–14:00 · dimanche fermé |
 
-Également :
+À maintenir dans le temps :
 
-- les horaires dans les données structurées de `index.html` (`openingHoursSpecification`) doivent refléter `config.js` ;
-- l'URL du site dans `robots.txt` et `sitemap.xml` si un nom de domaine personnalisé est utilisé ;
-- les visuels de partage `assets/img/og-cover.png` et `assets/img/og-cover-transport.png` (1200 × 630) sont fournis ; les régénérer si le slogan change.
+1. `hours.movingHolidays` — fêtes religieuses de l'année (Aïd, Mouled…), à saisir après l'annonce officielle ;
+2. `hours.closures` — congés exceptionnels ; `hours.overrides` — périodes à horaires particuliers (Ramadan…) ;
+3. `hours.seasons` — horaires d'été, désactivés (un exemple commenté est fourni) ;
+4. `transport.*` — coordonnées propres à By Ocean and Air Transport, si elles diffèrent un jour ;
+5. les horaires dans les données structurées de `index.html` (`openingHoursSpecification`) doivent refléter `config.js` ;
+6. l'URL du site dans `robots.txt` et `sitemap.xml` si un nom de domaine personnalisé est utilisé ;
+7. les visuels de partage `assets/img/og-cover.png` et `assets/img/og-cover-transport.png` (1200 × 630) sont fournis ; les régénérer si le slogan change.
 
 ## Mise en ligne (GitHub Pages)
 
