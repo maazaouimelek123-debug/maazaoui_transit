@@ -4,8 +4,8 @@
    Entrées  : MZ.SITE.hours (config.js)
    Sorties  : un objet « état » (ouvert / fermé / bientôt), le détail du jour,
               la prochaine transition, et le rendu DOM des widgets.
-   Priorité : fermetures > fêtes mobiles > fériés fixes > périodes ponctuelles
-              > saisons > horaires réguliers.
+   Priorité : fermetures > fêtes mobiles (date ou plage) > fériés fixes
+              > périodes ponctuelles > saisons > horaires réguliers.
    ========================================================================== */
 
 (function () {
@@ -137,7 +137,8 @@
       if (inIsoRange(parts.iso, c.from, c.to)) return { intervals: [], label: c.label, reason: "closure" };
     }
     for (const h of cfg.movingHolidays || []) {
-      if (h.date === parts.iso) return { intervals: [], label: { fr: h.fr, en: h.en }, reason: "holiday" };
+      const hit = h.date ? h.date === parts.iso : Boolean(h.from && h.to && inIsoRange(parts.iso, h.from, h.to));
+      if (hit) return { intervals: [], label: { fr: h.fr, en: h.en }, reason: "holiday" };
     }
     for (const h of cfg.holidays || []) {
       if (h.date === parts.md) return { intervals: [], label: { fr: h.fr, en: h.en }, reason: "holiday" };

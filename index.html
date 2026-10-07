@@ -43,6 +43,8 @@
     "telephone": "+21699976872",
     "email": "maazaouitransit@gmail.com",
     "address": { "@type": "PostalAddress", "addressLocality": "Radès", "addressRegion": "Ben Arous", "addressCountry": "TN" },
+    "geo": { "@type": "GeoCoordinates", "latitude": 36.757838, "longitude": 10.280797 },
+    "hasMap": "https://www.google.com/maps/search/?api=1&query=Q75J%2B48M%20Rad%C3%A8s%2C%20Tunisia",
     "areaServed": "TN",
     "knowsAbout": ["Dédouanement", "Titres du commerce extérieur", "Classification tarifaire", "Régimes douaniers économiques", "Transit international"],
     "openingHoursSpecification": [
@@ -536,8 +538,10 @@
             <article class="card contact-card">
               <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-i18n="ct.address">Adresse</span></div>
               <div class="value"><span data-bind="contact.address.line1">Radès</span><br><span class="muted small" data-bind="contact.address.line2">Ben Arous, Tunisie</span></div>
+              <div class="plus-code"><span class="faint" data-i18n="ct.plusCode">Code Plus</span> <b class="mono" data-bind="contact.plusCode">Q75J+48M</b></div>
               <div class="actions">
                 <a class="chip" data-href="maps" href="#contact" target="_blank" rel="noopener" data-i18n="ct.directions">Itinéraire</a>
+                <button class="chip" type="button" data-copy-bind="contact.plusCode" data-copy=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span data-i18n="ct.copy">Copier</span></button>
               </div>
             </article>
           </div>
@@ -594,6 +598,21 @@
               </div>
               <p class="form-hint" data-i18n="ct.form.hint">* Champs requis. Pour un devis précis, joignez la facture pro forma et la liste de colisage à votre message.</p>
             </form>
+          </div>
+        </div>
+
+        <div class="map-wrap" data-reveal>
+          <div class="map" data-map data-map-title="Carte — Maazaoui Transit, Radès">
+            <div class="map-fallback" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+          </div>
+          <div class="map-caption">
+            <div>
+              <b data-i18n="ct.map.title">Le bureau, à Radès</b>
+              <span class="faint small"><span data-bind="contact.address.line1">Radès</span>, <span data-bind="contact.address.line2">Ben Arous, Tunisie</span> · <span class="mono" data-bind="contact.plusCode">Q75J+48M</span></span>
+            </div>
+            <a class="chip" data-href="maps" href="#contact" target="_blank" rel="noopener"><span data-i18n="ct.map.open">Ouvrir dans Google Maps</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
           </div>
         </div>
       </div>

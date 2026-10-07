@@ -614,3 +614,83 @@
   font-size: var(--fs-sm);
   margin-bottom: 24px;
 }
+
+/* ------------------------------------------------------------------- Carte */
+.map-wrap {
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  display: grid;
+  gap: 14px;
+}
+
+.map {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  aspect-ratio: 16 / 7;
+  min-height: 280px;
+  isolation: isolate;
+}
+
+.map[hidden] {
+  display: none;
+}
+
+.map iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  /* Adapte la carte au thème sombre sans clé API ni style personnalisé. */
+  filter: invert(0.92) hue-rotate(195deg) saturate(0.55) brightness(0.92) contrast(1.05);
+}
+
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  color: rgba(var(--accent-rgb), 0.45);
+  background:
+    radial-gradient(60% 60% at 50% 50%, rgba(var(--accent-rgb), 0.08), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 39px, var(--line) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, var(--line) 39px 40px);
+}
+
+.map-fallback svg {
+  width: 48px;
+  height: 48px;
+}
+
+.map-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-inline: 6px;
+}
+
+.map-caption b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-lg);
+  line-height: 1.2;
+}
+
+.plus-code {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--fs-xs);
+}
+
+.plus-code b {
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--accent-2);
+}

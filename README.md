@@ -14,7 +14,7 @@ Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présenta
 | Bilingue FR / EN | Bascule instantanée, mémorisée sur l'appareil. Le français est la langue par défaut et reste lisible sans JavaScript. |
 | Design génératif | Champ de flux (courants / corridors) sur la page douane, vagues et trajectoire aérienne sur la page transport. Pause automatique hors écran, rendu statique si l'utilisateur préfère réduire les animations. |
 | Expérience de défilement | Défilement inertiel à la molette, hero épinglé qui recule sous le « rideau » des sections, cartes empilées pour le parcours, section de services horizontale épinglée (transport), texte qui s'allume mot à mot, teinte d'ambiance évolutive, barre de progression. Désactivable dans `config.js` (`ui.smoothScroll`, `ui.scrollEffects`) et automatiquement coupé si l'utilisateur préfère réduire les animations. |
-| Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone et l'e-mail. |
+| Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone, l'e-mail et le code Plus. Carte Google Maps intégrée depuis les coordonnées de la configuration, sans clé API. |
 | Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
 | Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
 
@@ -26,13 +26,13 @@ Toutes les données modifiables sont dans **`assets/js/config.js`** :
 | --- | --- |
 | Téléphone / WhatsApp | +216 99 976 872 |
 | E-mail | maazaouitransit@gmail.com |
-| Adresse | Radès, Ben Arous — rue et numéro **à compléter** : les saisir en `contact.address.line1` et déplacer « Radès » en `line2` |
+| Adresse | Radès, Ben Arous · code Plus **Q75J+48M** (36,757838 N / 10,280797 E) — rue et numéro facultatifs : les saisir en `contact.address.line1` et déplacer « Radès » en `line2` |
 | Agrément | n° 776 |
 | Horaires | Lundi → vendredi 08:00–17:00 · samedi 08:00–14:00 · dimanche fermé |
 
 À maintenir dans le temps :
 
-1. `hours.movingHolidays` — fêtes religieuses de l'année (Aïd, Mouled…), à saisir après l'annonce officielle ;
+1. `hours.movingHolidays` — fêtes religieuses (le bureau ferme pour l'Aïd). 2027 est pré-rempli d'après les projections astronomiques : **confirmer les dates dès l'annonce officielle du Mufti**, puis saisir l'année suivante ;
 2. `hours.closures` — congés exceptionnels ; `hours.overrides` — périodes à horaires particuliers (Ramadan…) ;
 3. `hours.seasons` — horaires d'été, désactivés (un exemple commenté est fourni) ;
 4. `transport.*` — coordonnées propres à By Ocean and Air Transport, si elles diffèrent un jour ;

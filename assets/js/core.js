@@ -97,6 +97,23 @@
       const v = getPath(model, el.dataset.copyBind);
       if (v !== undefined) el.dataset.copy = pick(v);
     }
+    // Carte intégrée : construite depuis les coordonnées de la configuration (aucune clé API requise).
+    for (const el of $$("[data-map]")) {
+      const g = c.geo;
+      if (!g || typeof g.lat !== "number" || typeof g.lng !== "number") {
+        el.hidden = true;
+        continue;
+      }
+      if (!el.querySelector("iframe")) {
+        const f = document.createElement("iframe");
+        f.src = `https://maps.google.com/maps?q=${g.lat},${g.lng}&z=16&hl=${lang()}&output=embed`;
+        f.loading = "lazy";
+        f.referrerPolicy = "no-referrer-when-downgrade";
+        f.title = el.dataset.mapTitle || "Google Maps";
+        f.setAttribute("allowfullscreen", "");
+        el.appendChild(f);
+      }
+    }
     for (const el of $$("[data-count-bind]")) {
       const v = getPath(model, el.dataset.countBind);
       if (v !== undefined) {

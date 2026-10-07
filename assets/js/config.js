@@ -41,14 +41,18 @@ MZ.SITE = {
     /* Numéro WhatsApp au format international sans « + » ni espaces */
     whatsapp: "21699976872",
     email: "maazaouitransit@gmail.com",
-    /* Adresse du bureau. À COMPLÉTER : quand la rue et le numéro seront connus, les mettre en ligne 1
+    /* Adresse du bureau. Quand la rue et le numéro seront connus, les mettre en ligne 1
        et déplacer la ville en ligne 2 (ex. line2: "Radès, Ben Arous · Tunisie"). */
     address: {
       line1: { fr: "Radès", en: "Radès" },
       line2: { fr: "Ben Arous, Tunisie", en: "Ben Arous, Tunisia" },
     },
-    /* Requête utilisée pour le lien « Itinéraire » (Google Maps) */
-    mapsQuery: "Maazaoui Transit, Radès, Tunisie",
+    /* Code Plus Google de l'emplacement exact (fourni par le bureau). */
+    plusCode: "Q75J+48M",
+    /* Coordonnées décodées depuis le code Plus (précision ≈ 3 m). Alimentent la carte et les données structurées. */
+    geo: { lat: 36.757838, lng: 10.280797 },
+    /* Requête utilisée pour le lien « Itinéraire » (Google Maps) : le code Plus pointe exactement sur le bureau. */
+    mapsQuery: "Q75J+48M Radès, Tunisia",
   },
 
   /* -------------------------------------------------- Société de transport */
@@ -116,10 +120,17 @@ MZ.SITE = {
       { date: "12-17", fr: "Fête de la Révolution", en: "Revolution Day" },
     ],
 
-    /* Fêtes religieuses (dates mobiles, à saisir chaque année après annonce officielle).
-       Exemple : { date: "2026-03-20", fr: "Aïd el-Fitr", en: "Eid al-Fitr" }
-    */
-    movingHolidays: [],
+    /* Fêtes religieuses (dates mobiles). Le bureau ferme pour l'Aïd.
+       Chaque entrée accepte soit une date unique { date }, soit une plage { from, to } (bornes incluses).
+       ⚠ Les dates ci-dessous sont des projections astronomiques : À CONFIRMER chaque année dès l'annonce
+       officielle du Mufti de la République (généralement la veille pour l'Aïd el-Fitr, ~10 jours avant pour l'Aïd al-Adha).
+       Les fêtes 2026 sont passées ; 2027 est pré-rempli. */
+    movingHolidays: [
+      { from: "2027-03-09", to: "2027-03-11", fr: "Aïd el-Fitr", en: "Eid al-Fitr" },
+      { from: "2027-05-16", to: "2027-05-17", fr: "Aïd al-Adha", en: "Eid al-Adha" },
+      { date: "2027-06-06", fr: "Ras el-Am el-Hijri", en: "Islamic New Year" },
+      { date: "2027-08-14", fr: "Mouled", en: "Mawlid" },
+    ],
 
     /* Seuils d'affichage « ouvre bientôt » / « ferme bientôt » (minutes). */
     thresholds: { openingSoon: 60, closingSoon: 30 },
