@@ -1,0 +1,74 @@
+# Maazaoui Transit — site vitrine
+
+Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présentant :
+
+- **Maazaoui Transit** — bureau de commissionnaire en douane agréé, indépendant depuis 2010 (`index.html`) ;
+- **By Ocean and Air Transport** — société sœur de transport international, maritime et aérien (`transport.html`), reliée par un « portail » animé.
+
+## Fonctionnalités
+
+| Fonction | Détail |
+| --- | --- |
+| Disponibilité en temps réel | État ouvert / fermé / ouvre bientôt calculé à l'heure de Tunis (`Africa/Tunis`), horaires d'été, jours fériés fixes, fêtes mobiles, fermetures exceptionnelles, barre des 24 h, tableau de la semaine. |
+| Deux univers, un portail | Transition circulaire fluide entre les deux sites depuis le point cliqué, sans rechargement visible. |
+| Bilingue FR / EN | Bascule instantanée, mémorisée sur l'appareil. Le français est la langue par défaut et reste lisible sans JavaScript. |
+| Design génératif | Champ de flux (courants / corridors) sur la page douane, vagues et trajectoire aérienne sur la page transport. Pause automatique hors écran, rendu statique si l'utilisateur préfère réduire les animations. |
+| Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone et l'e-mail. |
+| Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
+| Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
+
+## À compléter avant la mise en ligne
+
+Toutes les données modifiables sont dans **`assets/js/config.js`** :
+
+1. `contact.phone`, `contact.phoneRaw`, `contact.whatsapp`, `contact.email` ;
+2. `contact.address.line1` / `line2` et `contact.mapsQuery` (lien « Itinéraire ») ;
+3. `brand.license` — numéro d'agrément du commissionnaire ;
+4. `hours.regular`, `hours.seasons` (horaires d'été), `hours.overrides` (Ramadan…), `hours.closures` (congés), `hours.movingHolidays` (Aïd, Mouled… à saisir chaque année) ;
+5. `transport.*` — coordonnées propres à By Ocean and Air Transport, si différentes.
+
+Également :
+
+- les horaires dans les données structurées de `index.html` (`openingHoursSpecification`) doivent refléter `config.js` ;
+- l'URL du site dans `robots.txt` et `sitemap.xml` si un nom de domaine personnalisé est utilisé ;
+- les visuels de partage `assets/img/og-cover.png` et `assets/img/og-cover-transport.png` (1200 × 630) sont fournis ; les régénérer si le slogan change.
+
+## Mise en ligne (GitHub Pages)
+
+1. Fusionner la branche dans `main`.
+2. Dans le dépôt : **Settings → Pages → Build and deployment → Source : GitHub Actions**.
+3. Le workflow `.github/workflows/pages.yml` publie automatiquement à chaque push sur `main`.
+
+Le site est alors disponible sur `https://<compte>.github.io/maazaoui_transit/`. Un nom de domaine personnalisé peut être ajouté dans les mêmes réglages.
+
+## Développement local
+
+Le site fonctionne en ouvrant directement `index.html`, mais un petit serveur est recommandé :
+
+```bash
+npx serve .        # ou : python3 -m http.server 8080
+```
+
+## Structure
+
+```
+index.html                 Maazaoui Transit
+transport.html             By Ocean and Air Transport
+404.html                   Page d'erreur
+assets/css/base.css        Jetons de design (deux thèmes), reset, typographie
+assets/css/components.css  Composants partagés (navigation, cartes, portail, formulaire…)
+assets/css/customs.css     Mise en page de la page douane
+assets/css/ocean.css       Mise en page de la page transport
+assets/js/config.js        ★ Données métier modifiables
+assets/js/i18n.js          Dictionnaire anglais et bascule de langue
+assets/js/availability.js  Moteur d'horaires (fuseau, saisons, fériés)
+assets/js/canvas-flow.js   Animation « champ de flux »
+assets/js/canvas-ocean.js  Animation « vagues et trajectoire aérienne »
+assets/js/core.js          Orchestration de l'interface
+```
+
+## Limites connues
+
+- Les fêtes religieuses (dates mobiles) ne sont pas calculées : elles se saisissent dans `hours.movingHolidays` après l'annonce officielle.
+- Le formulaire n'envoie rien par lui-même : il ouvre la messagerie ou WhatsApp du visiteur. Un service d'envoi (Formspree, Netlify Forms…) peut être branché ultérieurement.
+- Les polices sont chargées depuis Google Fonts ; sans connexion, le site bascule sur les polices système.

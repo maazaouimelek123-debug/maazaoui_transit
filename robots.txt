@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# À adapter après mise en ligne (remplacer par le domaine définitif)
+Sitemap: https://maazaouimelek123-debug.github.io/maazaoui_transit/sitemap.xml

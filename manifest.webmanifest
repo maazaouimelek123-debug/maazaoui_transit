@@ -1,0 +1,13 @@
+{
+  "name": "Maazaoui Transit",
+  "short_name": "Maazaoui",
+  "description": "Commissionnaire en douane agréé en Tunisie depuis 2010. Dédouanement, TCE, classification tarifaire, transport international.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#070b14",
+  "theme_color": "#070b14",
+  "lang": "fr",
+  "icons": [
+    { "src": "assets/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
