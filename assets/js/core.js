@@ -104,15 +104,17 @@
         el.hidden = true;
         continue;
       }
-      if (!el.querySelector("iframe")) {
-        const f = document.createElement("iframe");
-        f.src = `https://maps.google.com/maps?q=${g.lat},${g.lng}&z=16&hl=${lang()}&output=embed`;
+      const src = `https://maps.google.com/maps?q=${g.lat},${g.lng}&z=16&hl=${lang()}&output=embed`;
+      let f = el.querySelector("iframe");
+      if (!f) {
+        f = document.createElement("iframe");
         f.loading = "lazy";
         f.referrerPolicy = "no-referrer-when-downgrade";
-        f.title = el.dataset.mapTitle || "Google Maps";
         f.setAttribute("allowfullscreen", "");
         el.appendChild(f);
       }
+      if (f.getAttribute("src") !== src) f.src = src; // suit la langue courante
+      f.title = el.dataset.mapTitle || "Google Maps";
     }
     for (const el of $$("[data-count-bind]")) {
       const v = getPath(model, el.dataset.countBind);

@@ -624,13 +624,22 @@
 
 .map {
   position: relative;
+  width: 100%;
+  max-width: 100%;
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--line-strong);
   background: var(--bg-2);
   aspect-ratio: 16 / 7;
-  min-height: 280px;
   isolation: isolate;
+}
+
+/* Sous 720 px : hauteur fixe (un min-height combiné à aspect-ratio se transférerait en largeur minimale). */
+@media (max-width: 720px) {
+  .map {
+    aspect-ratio: auto;
+    height: 300px;
+  }
 }
 
 .map[hidden] {
@@ -643,7 +652,8 @@
   width: 100%;
   height: 100%;
   border: 0;
-  /* Adapte la carte au thème sombre sans clé API ni style personnalisé. */
+  /* Adapte la carte au thème sombre sans clé API ni style personnalisé.
+     Limite connue : si l'embed ne charge pas, la page d'erreur opaque de l'iframe masque le repli quadrillé. */
   filter: invert(0.92) hue-rotate(195deg) saturate(0.55) brightness(0.92) contrast(1.05);
 }
 

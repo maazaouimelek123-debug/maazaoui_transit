@@ -32,6 +32,7 @@
     "ct.plusCode": "Plus Code",
     "ct.map.title": "The office, in Radès",
     "ct.map.open": "Open in Google Maps",
+    "ct.map.iframeTitle": "Map — Maazaoui Transit, Radès",
     "ct.form.lead": "The form prepares a ready-to-send message for your mail client or WhatsApp: nothing is stored on this website.",
     "ct.form.name": "Name *",
     "ct.form.namePh": "Your name",
@@ -99,7 +100,7 @@
     "av.lead": "The status below is computed on Tunis time, taking into account national public holidays and exceptional closures.",
     "av.call": "Call the office",
     "av.week": "Current week",
-    "av.note": "National public holidays are handled automatically; religious holidays are added once officially announced. Indicative hours: a call always confirms.",
+    "av.note": "National public holidays are handled automatically; religious holidays (Eid, Mawlid…) are entered provisionally and confirmed once officially announced. Indicative hours: a call always confirms.",
 
     "off.eyebrow": "The office",
     "off.title": 'An independent office <span class="em">since 2010.</span>',

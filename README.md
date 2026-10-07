@@ -78,6 +78,7 @@ assets/js/scroll.js        Moteur des effets de défilement (une seule boucle rA
 
 ## Limites connues
 
-- Les fêtes religieuses (dates mobiles) ne sont pas calculées : elles se saisissent dans `hours.movingHolidays` après l'annonce officielle.
+- Les fêtes religieuses (dates mobiles) ne sont pas calculées : elles sont saisies à titre prévisionnel dans `hours.movingHolidays` (2027 pré-rempli) et doivent être confirmées après l'annonce officielle.
+- Si l'embed Google Maps ne charge pas (réseau bloqué), la page d'erreur de l'iframe masque le repli quadrillé : limite navigateur, sans incidence en production.
 - Le formulaire n'envoie rien par lui-même : il ouvre la messagerie ou WhatsApp du visiteur. Un service d'envoi (Formspree, Netlify Forms…) peut être branché ultérieurement.
 - Les polices sont chargées depuis Google Fonts ; sans connexion, le site bascule sur les polices système.
