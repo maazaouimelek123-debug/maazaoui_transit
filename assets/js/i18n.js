@@ -17,6 +17,7 @@
     "meta.title.customs": "Maazaoui Transit — Licensed customs broker, Tunisia · since 2010",
     "meta.title.transport": "By Ocean and Air Transport — Sea & air freight, Tunisia · Maazaoui Transit group",
     "a11y.skip": "Skip to content",
+    "nav.rail": "Page progress",
     "hero.scroll": "Scroll",
     "ft.nav": "Navigation",
     "ft.group": "Group",

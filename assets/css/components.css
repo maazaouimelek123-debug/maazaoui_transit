@@ -636,7 +636,8 @@ html.veil-in .page-veil {
   opacity: 1;
 }
 
-.card:hover {
+.card:hover,
+[data-reveal-stagger].is-visible > .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
 }

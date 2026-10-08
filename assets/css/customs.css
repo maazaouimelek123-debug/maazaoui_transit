@@ -13,7 +13,7 @@
   overflow: clip;
 }
 
-/* Le champ de particules est désormais une couche fixe globale (.field, voir scroll.css). */
+/* Le champ de particules est désormais une couche fixe globale (.depth-field, voir scroll.css). */
 
 .hero-year {
   position: absolute;

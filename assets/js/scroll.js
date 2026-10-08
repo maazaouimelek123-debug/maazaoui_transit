@@ -1,15 +1,17 @@
 /* =============================================================================
    SCROLL — expérience de défilement pilotée par la progression
    -----------------------------------------------------------------------------
-   Un seul rAF lit la position de défilement et met à jour des variables CSS :
+   Une seule boucle rAF, en deux passes : chaque effet LIT d'abord la géométrie
+   (getBoundingClientRect…) et renvoie une fonction d'ÉCRITURE ; toutes les
+   écritures de style sont ensuite appliquées d'un bloc. Cela évite les
+   recalculs de style forcés par l'entrelacement lecture/écriture.
      • défilement inertiel (molette) — désactivable : MZ.SITE.ui.smoothScroll
-     • hero épinglé qui recule et s'estompe sous le « rideau » des sections
-     • cartes empilées [data-stack] (chaque carte glisse sur la précédente)
-     • section horizontale épinglée [data-hscroll] (bureau uniquement)
-     • texte qui s'allume mot à mot [data-scrub-text]
-     • parallaxe légère [data-parallax="0.15"]
-     • teinte d'ambiance [data-tint="r g b"] appliquée au rideau
-     • barre de progression de lecture
+     • hero qui recule (épinglé sur la page transport, en flux sur l'accueil)
+     • cartes empilées [data-stack], section horizontale [data-hscroll]
+     • texte mot à mot [data-scrub-text], parallaxe [data-parallax]
+     • teinte d'ambiance [data-tint] (variables sur <html>)
+     • champ persistant .depth-field (profondeur), éclosion [data-bloom]
+       depuis une graine jaune, rail de parcours [data-rail]
    Tout est désactivé si l'utilisateur préfère réduire les animations ; sans
    JavaScript, la mise en page reste la mise en page classique (html sans .fx).
    ========================================================================== */
@@ -89,34 +91,43 @@
   }
 
   /* ------------------------------------------------------- Registre d'effets */
-  const effects = [];
+  const effects = []; // fn(y) → lit la géométrie, renvoie une fonction d'écriture (ou rien)
   let dirty = true;
   let lastY = -1;
   let vh = window.innerHeight;
+  const register = (fn) => effects.push(fn);
+  const setVar = (el, name, value) => {
+    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+  };
 
-  function register(fn) {
-    effects.push(fn);
-  }
-
-  /* Hero épinglé */
+  /* Hero : recule et s'estompe. Épinglé (transport) → selon le défilement ;
+     en flux (accueil) → selon la sortie réelle de son bord inférieur. */
   (function heroPin() {
     const hero = $(".hero, .ohero");
     if (!hero) return;
     register((y) => {
-      const h = hero.offsetHeight || vh;
-      const hp = clamp(y / (h * 0.9), 0, 1);
-      hero.style.setProperty("--hp", hp.toFixed(4));
-      hero.classList.toggle("is-passed", hp >= 1);
+      const sticky = getComputedStyle(hero).position === "sticky";
+      let hp;
+      if (sticky) {
+        hp = clamp(y / ((hero.offsetHeight || vh) * 0.9), 0, 1);
+      } else {
+        const bottom = hero.getBoundingClientRect().bottom;
+        hp = clamp((vh * 0.6 - bottom) / (vh * 0.4), 0, 1);
+      }
+      const v = hp.toFixed(4);
+      return () => {
+        setVar(hero, "--hp", v);
+        hero.classList.toggle("is-passed", sticky && hp >= 1);
+      };
     });
   })();
 
-  /* Barre de progression */
-  (function progressBar() {
-    const bar = $(".scroll-progress");
-    if (!bar) return;
+  /* Progression de lecture : variable posée sur <html> (barre et rail en héritent) */
+  (function progress() {
     register((y) => {
       const max = Math.max(1, html.scrollHeight - vh);
-      bar.style.setProperty("--scroll-p", clamp(y / max, 0, 1).toFixed(4));
+      const v = clamp(y / max, 0, 1).toFixed(4);
+      return () => setVar(html, "--scroll-p", v);
     });
   })();
 
@@ -126,19 +137,20 @@
       const cards = Array.from(stack.children).filter((c) => c.classList.contains("step"));
       cards.forEach((c, i) => c.style.setProperty("--i", i));
       register(() => {
+        const rects = cards.map((c) => c.getBoundingClientRect());
+        const sps = [];
         let active = -1;
         for (let i = 0; i < cards.length; i++) {
-          const a = cards[i].getBoundingClientRect();
-          if (i < cards.length - 1) {
-            const b = cards[i + 1].getBoundingClientRect();
-            const sp = clamp(1 - (b.top - a.top) / Math.max(1, a.height), 0, 1);
-            cards[i].style.setProperty("--sp", sp.toFixed(4));
-          } else {
-            cards[i].style.setProperty("--sp", "0");
-          }
+          const a = rects[i];
+          sps[i] = i < cards.length - 1 ? clamp(1 - (rects[i + 1].top - a.top) / Math.max(1, a.height), 0, 1).toFixed(4) : "0";
           if (a.top < vh * 0.6) active = i;
         }
-        cards.forEach((c, i) => c.classList.toggle("is-active", i === active));
+        return () => {
+          cards.forEach((c, i) => {
+            setVar(c, "--sp", sps[i]);
+            c.classList.toggle("is-active", i === active);
+          });
+        };
       });
     }
   })();
@@ -167,11 +179,14 @@
       });
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); dirty = true; });
       register(() => {
-        if (!extra) return;
+        if (!extra) return null;
         const r = section.getBoundingClientRect();
         const p = clamp(-r.top / extra, 0, 1);
-        track.style.transform = `translate3d(${(-p * extra).toFixed(1)}px, 0, 0)`;
-        section.style.setProperty("--hx", p.toFixed(4));
+        const tx = `translate3d(${(-p * extra).toFixed(1)}px, 0, 0)`;
+        return () => {
+          if (track.style.transform !== tx) track.style.transform = tx;
+          setVar(section, "--hx", p.toFixed(4));
+        };
       });
     }
   })();
@@ -196,7 +211,6 @@
     };
     const items = $$("[data-scrub-text]").map((el) => ({ el, words: split(el), count: -1 }));
     if (!items.length) return;
-    // Après un changement de langue, le contenu est remplacé : on redécoupe.
     document.addEventListener("mz:lang", () => {
       for (const it of items) {
         delete it.el.dataset.scrubReady;
@@ -206,14 +220,19 @@
       dirty = true;
     });
     register(() => {
-      for (const it of items) {
+      const counts = items.map((it) => {
         const r = it.el.getBoundingClientRect();
         const p = clamp((vh * 0.82 - r.top) / (r.height + vh * 0.22), 0, 1);
-        const count = Math.round(p * it.words.length);
-        if (count === it.count) continue;
-        it.count = count;
-        it.words.forEach((w, i) => w.classList.toggle("on", i < count));
-      }
+        return Math.round(p * it.words.length);
+      });
+      return () => {
+        items.forEach((it, idx) => {
+          const count = counts[idx];
+          if (count === it.count) return;
+          it.count = count;
+          it.words.forEach((w, i) => w.classList.toggle("on", i < count));
+        });
+      };
     });
   })();
 
@@ -222,18 +241,22 @@
     const items = $$("[data-parallax]").map((el) => ({ el, speed: Number(el.dataset.parallax) || 0.15 }));
     if (!items.length) return;
     register(() => {
-      for (const it of items) {
+      const offs = items.map((it) => {
         const r = it.el.getBoundingClientRect();
-        const off = (r.top + r.height / 2 - vh / 2) * it.speed;
-        it.el.style.transform = `translate3d(0, ${off.toFixed(1)}px, 0)`;
-      }
+        return ((r.top + r.height / 2 - vh / 2) * it.speed).toFixed(1);
+      });
+      return () => {
+        items.forEach((it, i) => {
+          const t = `translate3d(0, ${offs[i]}px, 0)`;
+          if (it.el.style.transform !== t) it.el.style.transform = t;
+        });
+      };
     });
   })();
 
-  /* Teinte d'ambiance du rideau */
+  /* Teinte d'ambiance (aurore et rideau lisent les variables sur <html>) */
   (function tint() {
     const sections = $$("[data-tint]");
-    const curtain = html;
     if (!sections.length) return;
     register(() => {
       let best = 0;
@@ -247,8 +270,11 @@
           rgb = s.dataset.tint;
         }
       }
-      curtain.style.setProperty("--tint-mix", best.toFixed(3));
-      if (rgb) curtain.style.setProperty("--tint-rgb", rgb);
+      const mix = best.toFixed(3);
+      return () => {
+        setVar(html, "--tint-mix", mix);
+        if (rgb) setVar(html, "--tint-rgb", rgb);
+      };
     });
   })();
 
@@ -256,13 +282,15 @@
   (function fieldDepth() {
     const field = $(".depth-field");
     if (!field) return;
+    const canvas = field.querySelector("canvas");
     register((y) => {
       const max = Math.max(1, html.scrollHeight - vh);
-      const d = clamp(y / max, 0, 1);
-      const eased = 1 - Math.pow(1 - d, 1.7);
-      field.style.setProperty("--depth", eased.toFixed(4));
-      const c = field.querySelector("canvas");
-      if (c && c.__flow) c.__flow.setDepth(eased);
+      const eased = 1 - Math.pow(1 - clamp(y / max, 0, 1), 1.7);
+      const v = eased.toFixed(4);
+      return () => {
+        setVar(field, "--depth", v);
+        if (canvas && canvas.__flow) canvas.__flow.setDepth(eased);
+      };
     });
   })();
 
@@ -275,15 +303,16 @@
       seed.className = "seed";
       seed.setAttribute("aria-hidden", "true");
       parent.insertBefore(seed, el);
-      return { el, seed, burst: false, p: -1 };
+      return { el, seed, burst: false, p: -1, oy: 0, floor: 0, floorArmed: false, section: el.closest("section") };
     });
     if (!items.length) return;
+
     const place = () => {
       for (const it of items) {
         const h = it.el.offsetHeight || 1;
-        // Origine : le centre du bloc, mais jamais plus bas que 35 % de la hauteur d'écran
-        // sous son bord supérieur, pour rester visible au moment de l'éclosion.
-        it.oy = Math.min(h / 2, vh * 0.35);
+        // Origine : le centre du bloc, mais au plus 12 % de la hauteur d'écran sous son
+        // bord supérieur, pour que la graine soit vue comme un point avant d'éclore.
+        it.oy = Math.min(h / 2, vh * 0.12);
         it.el.style.setProperty("--oy", `${((it.oy / h) * 100).toFixed(2)}%`);
         it.seed.style.top = `${it.el.offsetTop + it.oy}px`;
         it.seed.style.left = `${it.el.offsetLeft + it.el.offsetWidth / 2}px`;
@@ -295,54 +324,101 @@
     window.addEventListener("load", place);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
     document.addEventListener("mz:lang", () => setTimeout(place, 50));
+
+    // Arrivée par ancre : les blocs de la section visée sont considérés éclos
+    // (le lecteur est déjà « dans » la section), jusqu'à ce qu'il remonte au-dessus.
+    const forceHash = () => {
+      const id = decodeURIComponent((location.hash || "").slice(1));
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      for (const it of items) {
+        if (target === it.el || target.contains(it.el) || (it.section && it.section === target)) it.floor = 1;
+      }
+      dirty = true;
+    };
+    forceHash();
+    window.addEventListener("hashchange", forceHash);
+    window.addEventListener("load", forceHash);
+
     const flow = () => {
       const c = $(".depth-field canvas");
       return c && c.__flow;
     };
+
     register(() => {
-      for (const it of items) {
+      const start = vh * 0.98; // le haut du bloc entre par le bas de l'écran
+      const end = vh * 0.52; // éclosion achevée quand il atteint la mi-hauteur
+      const results = items.map((it) => {
         const r = it.el.getBoundingClientRect();
-        const start = vh * 0.98; // le haut du bloc entre par le bas de l'écran
-        const end = vh * 0.52; // éclosion achevée quand il atteint la mi-hauteur
-        const p = clamp((start - r.top) / (start - end), 0, 1);
-        if (p === it.p) continue;
-        const rising = p > it.p;
-        it.p = p;
-        it.el.style.setProperty("--bp", p.toFixed(4));
-        it.el.classList.toggle("is-bloomed", p >= 0.999);
-        it.seed.style.setProperty("--sp", p.toFixed(4));
-        if (rising && !it.burst && p > 0.28) {
-          it.burst = true;
-          const f = flow();
-          if (f) f.burst(r.left + r.width / 2, clamp(r.top + (it.oy || r.height / 2), vh * 0.12, vh * 0.9), 36);
+        if (it.floor) {
+          // Le plancher ne tombe qu'une fois le bloc réellement vu (ligne de départ franchie)
+          // puis dépassé vers le haut ; les images rendues avant le saut à l'ancre ne comptent pas.
+          if (r.top <= start) it.floorArmed = true;
+          else if (it.floorArmed) {
+            it.floor = 0;
+            it.floorArmed = false;
+          }
         }
-        if (p < 0.04) it.burst = false;
-      }
+        const p = Math.max(it.floor, clamp((start - r.top) / (start - end), 0, 1));
+        return { r, p };
+      });
+      return () => {
+        items.forEach((it, i) => {
+          const { r, p } = results[i];
+          if (p === it.p) return;
+          const rising = p > it.p;
+          it.p = p;
+          const v = p.toFixed(4);
+          setVar(it.el, "--bp", v);
+          it.el.classList.toggle("is-bloomed", p >= 0.999);
+          setVar(it.seed, "--sp", v);
+          if (rising && !it.burst && p > 0.28 && p < 0.999) {
+            it.burst = true;
+            const f = flow();
+            if (f) f.burst(r.left + r.width / 2, clamp(r.top + (it.oy || r.height / 2), vh * 0.12, vh * 0.9), 36);
+          }
+          if (p < 0.04) it.burst = false;
+        });
+      };
     });
   })();
 
-  /* Rail de parcours : pointillé jaune et nœuds par section */
+  /* Rail de parcours : pointillé jaune, nœuds par section, état courant exposé */
   (function rail() {
     const rail = $(".rail");
     const sections = $$("[data-rail]");
     if (!rail || !sections.length) return;
     let nodes = [];
+    let active = -1;
     const build = () => {
       const en = html.lang === "en";
       rail.innerHTML = sections
-        .map((s, i) => `<a class="rail-node" href="#${s.id}" style="--i:${i}"><span>${(en && s.dataset.railEn) || s.dataset.rail}</span></a>`)
+        .map((s, i) => {
+          const label = (en && s.dataset.railEn) || s.dataset.rail;
+          return `<a class="rail-node" href="#${s.id}" style="--i:${i}" aria-label="${label}"><span aria-hidden="true">${label}</span></a>`;
+        })
         .join("");
       nodes = $$(".rail-node", rail);
+      active = -1;
       dirty = true;
     };
     build();
     document.addEventListener("mz:lang", build);
     register(() => {
-      let active = 0;
+      let next = 0;
       sections.forEach((s, i) => {
-        if (s.getBoundingClientRect().top < vh * 0.5) active = i;
+        if (s.getBoundingClientRect().top < vh * 0.5) next = i;
       });
-      nodes.forEach((n, i) => n.classList.toggle("is-active", i === active));
+      return () => {
+        if (next === active) return;
+        active = next;
+        nodes.forEach((n, i) => {
+          n.classList.toggle("is-active", i === active);
+          if (i === active) n.setAttribute("aria-current", "true");
+          else n.removeAttribute("aria-current");
+        });
+      };
     });
   })();
 
@@ -352,7 +428,12 @@
     if (y !== lastY || dirty) {
       lastY = y;
       dirty = false;
-      for (const fn of effects) fn(y);
+      const writes = [];
+      for (const fn of effects) {
+        const w = fn(y); // phase lecture
+        if (typeof w === "function") writes.push(w);
+      }
+      for (const w of writes) w(); // phase écriture
     }
     requestAnimationFrame(frame);
   }

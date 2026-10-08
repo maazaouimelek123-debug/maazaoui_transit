@@ -54,9 +54,9 @@
     }
 
     function resize() {
-      const rect = canvas.getBoundingClientRect();
-      w = Math.max(1, Math.round(rect.width));
-      h = Math.max(1, Math.round(rect.height));
+      // Taille non transformée (le canvas peut être mis à l'échelle par CSS).
+      w = Math.max(1, canvas.clientWidth || Math.round(canvas.getBoundingClientRect().width));
+      h = Math.max(1, canvas.clientHeight || Math.round(canvas.getBoundingClientRect().height));
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
@@ -77,10 +77,13 @@
       );
     }
 
+    let frameNo = 0;
     function step() {
-      // Estompe les traînées en conservant la transparence du canvas.
+      // Estompe les traînées en conservant la transparence du canvas. Un fondu plus
+      // fort toutes les 20 images abaisse le plancher d'alpha 8 bits (sinon ≈ 4 % résiduels).
+      frameNo++;
       ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = `rgba(0,0,0,${o.fade})`;
+      ctx.fillStyle = `rgba(0,0,0,${frameNo % 20 === 0 ? Math.max(o.fade, 0.14) : o.fade})`;
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = "source-over";
 
