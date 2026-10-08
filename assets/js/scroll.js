@@ -118,9 +118,11 @@
       if (sticky) {
         hp = clamp(y / ((hero.offsetHeight || vh) * 0.9), 0, 1);
       } else if (ref) {
-        // Référence de mise en page (non transformée) : le .hero n'est pas transformé,
-        // et .hero-stats s'y positionne via offsetTop → pas de rétroaction du fondu.
-        const top = hero.getBoundingClientRect().top + ref.offsetTop;
+        // Référence de mise en page (non transformée) : on cumule les offsets jusqu'au .hero
+        // (le conteneur intermédiaire, doté de will-change, est offsetParent sous Chromium).
+        let t = 0;
+        for (let el = ref; el && el !== hero; el = el.offsetParent) t += el.offsetTop;
+        const top = hero.getBoundingClientRect().top + t;
         hp = clamp(-top / Math.max(ref.offsetHeight, vh * 0.3), 0, 1);
       } else {
         hp = clamp(-hero.getBoundingClientRect().bottom / (vh * 0.3) + 1, 0, 1);
