@@ -233,8 +233,8 @@
   /* Teinte d'ambiance du rideau */
   (function tint() {
     const sections = $$("[data-tint]");
-    const curtain = $(".curtain");
-    if (!sections.length || !curtain) return;
+    const curtain = html;
+    if (!sections.length) return;
     register(() => {
       let best = 0;
       let rgb = null;
@@ -249,6 +249,100 @@
       }
       curtain.style.setProperty("--tint-mix", best.toFixed(3));
       if (rgb) curtain.style.setProperty("--tint-rgb", rgb);
+    });
+  })();
+
+  /* Champ persistant : la plongée s'accentue avec le défilement */
+  (function fieldDepth() {
+    const field = $(".depth-field");
+    if (!field) return;
+    register((y) => {
+      const max = Math.max(1, html.scrollHeight - vh);
+      const d = clamp(y / max, 0, 1);
+      const eased = 1 - Math.pow(1 - d, 1.7);
+      field.style.setProperty("--depth", eased.toFixed(4));
+      const c = field.querySelector("canvas");
+      if (c && c.__flow) c.__flow.setDepth(eased);
+    });
+  })();
+
+  /* Éclosion : chaque bloc [data-bloom] naît d'un point jaune et grandit vers le lecteur */
+  (function bloom() {
+    const items = $$("[data-bloom]").map((el) => {
+      const parent = el.parentElement;
+      if (getComputedStyle(parent).position === "static") parent.style.position = "relative";
+      const seed = document.createElement("i");
+      seed.className = "seed";
+      seed.setAttribute("aria-hidden", "true");
+      parent.insertBefore(seed, el);
+      return { el, seed, burst: false, p: -1 };
+    });
+    if (!items.length) return;
+    const place = () => {
+      for (const it of items) {
+        const h = it.el.offsetHeight || 1;
+        // Origine : le centre du bloc, mais jamais plus bas que 35 % de la hauteur d'écran
+        // sous son bord supérieur, pour rester visible au moment de l'éclosion.
+        it.oy = Math.min(h / 2, vh * 0.35);
+        it.el.style.setProperty("--oy", `${((it.oy / h) * 100).toFixed(2)}%`);
+        it.seed.style.top = `${it.el.offsetTop + it.oy}px`;
+        it.seed.style.left = `${it.el.offsetLeft + it.el.offsetWidth / 2}px`;
+      }
+      dirty = true;
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("load", place);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+    document.addEventListener("mz:lang", () => setTimeout(place, 50));
+    const flow = () => {
+      const c = $(".depth-field canvas");
+      return c && c.__flow;
+    };
+    register(() => {
+      for (const it of items) {
+        const r = it.el.getBoundingClientRect();
+        const start = vh * 0.98; // le haut du bloc entre par le bas de l'écran
+        const end = vh * 0.52; // éclosion achevée quand il atteint la mi-hauteur
+        const p = clamp((start - r.top) / (start - end), 0, 1);
+        if (p === it.p) continue;
+        const rising = p > it.p;
+        it.p = p;
+        it.el.style.setProperty("--bp", p.toFixed(4));
+        it.el.classList.toggle("is-bloomed", p >= 0.999);
+        it.seed.style.setProperty("--sp", p.toFixed(4));
+        if (rising && !it.burst && p > 0.28) {
+          it.burst = true;
+          const f = flow();
+          if (f) f.burst(r.left + r.width / 2, clamp(r.top + (it.oy || r.height / 2), vh * 0.12, vh * 0.9), 36);
+        }
+        if (p < 0.04) it.burst = false;
+      }
+    });
+  })();
+
+  /* Rail de parcours : pointillé jaune et nœuds par section */
+  (function rail() {
+    const rail = $(".rail");
+    const sections = $$("[data-rail]");
+    if (!rail || !sections.length) return;
+    let nodes = [];
+    const build = () => {
+      const en = html.lang === "en";
+      rail.innerHTML = sections
+        .map((s, i) => `<a class="rail-node" href="#${s.id}" style="--i:${i}"><span>${(en && s.dataset.railEn) || s.dataset.rail}</span></a>`)
+        .join("");
+      nodes = $$(".rail-node", rail);
+      dirty = true;
+    };
+    build();
+    document.addEventListener("mz:lang", build);
+    register(() => {
+      let active = 0;
+      sections.forEach((s, i) => {
+        if (s.getBoundingClientRect().top < vh * 0.5) active = i;
+      });
+      nodes.forEach((n, i) => n.classList.toggle("is-active", i === active));
     });
   })();
 

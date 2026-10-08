@@ -228,3 +228,227 @@ html.fx [data-parallax] {
     grid-column: span 2;
   }
 }
+
+/* =============================================================================
+   PLONGÉE DANS LE CHAMP — champ persistant, éclosion depuis un point, rail
+   ========================================================================== */
+
+/* ------------------------------------------------------ Champ persistant */
+.depth-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.depth-field canvas {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 45%;
+  transform: scale(calc(1 + var(--depth, 0) * 0.5));
+  opacity: calc(0.85 + var(--depth, 0) * 0.15);
+  will-change: transform;
+}
+
+.depth-field::after {
+  /* Vignette : garde le centre lisible et creuse les bords avec la profondeur */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at 50% 40%,
+    transparent 35%,
+    rgba(var(--bg-rgb), calc(0.35 + var(--depth, 0) * 0.35)) 100%
+  );
+}
+
+html:not(.fx) .depth-field canvas {
+  transform: none;
+}
+
+/* Page douane : le hero n'est plus épinglé (le champ est global) et le rideau est transparent */
+html.fx body[data-page="customs"] .hero {
+  position: relative;
+  z-index: 0;
+}
+
+html.fx body[data-page="customs"] .hero.is-passed {
+  visibility: visible;
+}
+
+html.fx body[data-page="customs"] .curtain {
+  background: transparent;
+  box-shadow: none;
+}
+
+html.fx body[data-page="customs"] .hero + .marquee,
+html.fx body[data-page="customs"] .curtain > .marquee {
+  background: rgba(var(--bg-rgb), 0.35);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* Teinte d'ambiance appliquée à l'aurore (variables posées sur <html>) */
+@supports (color: color-mix(in srgb, red, blue 50%)) {
+  html.fx .aurora span:nth-child(1) {
+    background: color-mix(in srgb, var(--aurora-a), rgb(var(--tint-rgb, 63 217 203) / 0.34) calc(var(--tint-mix, 0) * 100%));
+  }
+
+  html.fx .aurora span:nth-child(2) {
+    background: color-mix(in srgb, var(--aurora-b), rgb(var(--tint-rgb, 63 217 203) / 0.28) calc(var(--tint-mix, 0) * 100%));
+  }
+
+  html.fx .aurora span:nth-child(3) {
+    background: color-mix(in srgb, var(--aurora-c), rgb(var(--tint-rgb, 63 217 203) / 0.24) calc(var(--tint-mix, 0) * 100%));
+  }
+}
+
+/* ------------------------------------------------- Éclosion depuis un point */
+html.fx [data-bloom] {
+  --bp: 0;
+  transform: perspective(1400px) translate3d(0, calc((1 - var(--bp)) * 48px), calc((1 - var(--bp)) * -720px))
+    scale(calc(0.6 + var(--bp) * 0.4));
+  opacity: calc(var(--bp) * 1.15);
+  clip-path: circle(calc(var(--bp) * 125%) at 50% var(--oy, 50%));
+  transform-origin: 50% var(--oy, 50%);
+  will-change: transform, opacity, clip-path;
+}
+
+html.fx [data-bloom].is-bloomed {
+  transform: none;
+  opacity: 1;
+  clip-path: none;
+  will-change: auto;
+}
+
+/* Les révélations internes ne doublent pas l'éclosion */
+html.fx [data-bloom] [data-reveal],
+html.fx [data-bloom] [data-reveal-stagger] > * {
+  transition-delay: 0s;
+}
+
+@media (max-width: 760px) {
+  html.fx [data-bloom] {
+    transform: perspective(900px) translate3d(0, calc((1 - var(--bp)) * 28px), calc((1 - var(--bp)) * -320px))
+      scale(calc(0.72 + var(--bp) * 0.28));
+  }
+}
+
+/* Point jaune : graine de chaque bloc */
+.seed {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.5), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+  pointer-events: none;
+  z-index: 3;
+  opacity: calc(1 - var(--sp, 0) * 1.2);
+  transform: scale(calc(1 + var(--sp, 0) * 9));
+  animation: seed-pulse 2.4s ease-out infinite;
+}
+
+html:not(.fx) .seed {
+  display: none;
+}
+
+@keyframes seed-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.55), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(var(--accent-rgb), 0), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+  }
+}
+
+/* ------------------------------------------------------- Rail de parcours */
+.rail {
+  position: fixed;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 95;
+  display: none;
+  flex-direction: column;
+  gap: 18px;
+  padding-left: 18px;
+  border-left: 2px dotted rgba(var(--accent-rgb), 0.45);
+}
+
+.rail::before {
+  /* Progression : la partie parcourue du pointillé devient pleine et dorée */
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 0;
+  width: 2px;
+  height: calc(var(--scroll-p, 0) * 100%);
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
+  transition: height 0.2s linear;
+}
+
+@media (min-width: 1180px) {
+  html.fx .rail {
+    display: flex;
+  }
+}
+
+.rail-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 14px;
+  color: var(--text-3);
+  text-decoration: none;
+}
+
+.rail-node::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: -23px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid rgba(var(--accent-rgb), 0.55);
+  transition: transform 0.4s var(--ease-out), background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.rail-node span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s, transform 0.4s var(--ease-out), color 0.3s;
+  white-space: nowrap;
+}
+
+.rail:hover .rail-node span,
+.rail-node.is-active span {
+  opacity: 1;
+  transform: none;
+}
+
+.rail-node.is-active {
+  color: var(--accent-2);
+}
+
+.rail-node.is-active::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.5);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.8);
+}
+
+.rail-node:hover::before {
+  border-color: var(--accent);
+}
