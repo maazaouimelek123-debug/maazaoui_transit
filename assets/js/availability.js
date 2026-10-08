@@ -4,8 +4,8 @@
    Entrées  : MZ.SITE.hours (config.js)
    Sorties  : un objet « état » (ouvert / fermé / bientôt), le détail du jour,
               la prochaine transition, et le rendu DOM des widgets.
-   Priorité : fermetures > fêtes mobiles > fériés fixes > périodes ponctuelles
-              > saisons > horaires réguliers.
+   Priorité : fermetures > fêtes mobiles (date ou plage) > fériés fixes
+              > périodes ponctuelles > saisons > horaires réguliers.
    ========================================================================== */
 
 (function () {
@@ -28,6 +28,7 @@
       opensAt: "Ouvre à <strong>{t}</strong>",
       opensTomorrow: "Ouvre demain à <strong>{t}</strong>",
       opensOn: "Ouvre {d} à <strong>{t}</strong>",
+      opensOnDate: "Ouvre {d} {date} à <strong>{t}</strong>",
       inTime: "dans {x}",
       closedToday: "Fermé aujourd'hui",
       holiday: "Jour férié",
@@ -38,6 +39,8 @@
       min: "min",
       days: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
       daysShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+      months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+      dateFmt: "{d} {m}",
       closedWord: "Fermé",
     },
     en: {
@@ -50,6 +53,7 @@
       opensAt: "Opens at <strong>{t}</strong>",
       opensTomorrow: "Opens tomorrow at <strong>{t}</strong>",
       opensOn: "Opens {d} at <strong>{t}</strong>",
+      opensOnDate: "Opens {d} {date} at <strong>{t}</strong>",
       inTime: "in {x}",
       closedToday: "Closed today",
       holiday: "Public holiday",
@@ -60,6 +64,8 @@
       min: "min",
       days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
       daysShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      dateFmt: "{d} {m}",
       closedWord: "Closed",
     },
   };
@@ -137,7 +143,8 @@
       if (inIsoRange(parts.iso, c.from, c.to)) return { intervals: [], label: c.label, reason: "closure" };
     }
     for (const h of cfg.movingHolidays || []) {
-      if (h.date === parts.iso) return { intervals: [], label: { fr: h.fr, en: h.en }, reason: "holiday" };
+      const hit = h.date ? h.date === parts.iso : Boolean(h.from && h.to && inIsoRange(parts.iso, h.from, h.to));
+      if (hit) return { intervals: [], label: { fr: h.fr, en: h.en }, reason: "holiday" };
     }
     for (const h of cfg.holidays || []) {
       if (h.date === parts.md) return { intervals: [], label: { fr: h.fr, en: h.en }, reason: "holiday" };
@@ -248,7 +255,15 @@
       } else if (next.dayOffset === 1) {
         detail = tpl(S.opensTomorrow, { t: fmtMin(next.start) });
       } else {
-        detail = tpl(S.opensOn, { d: S.days[next.wd].toLowerCase(), t: fmtMin(next.start) });
+        const dayName = lang === "fr" ? S.days[next.wd].toLowerCase() : S.days[next.wd];
+        if (next.dayOffset >= 7) {
+          // Réouverture lointaine (congé, plage de fêtes) : la date lève l'ambiguïté du seul nom de jour.
+          const target = shiftDay(result.parts, next.dayOffset);
+          const date = tpl(S.dateFmt, { d: target.d, m: S.months[target.m - 1] });
+          detail = tpl(S.opensOnDate, { d: dayName, date, t: fmtMin(next.start) });
+        } else {
+          detail = tpl(S.opensOn, { d: dayName, t: fmtMin(next.start) });
+        }
       }
     }
 
@@ -307,7 +322,7 @@
    * Monte le widget : met à jour toutes les cibles [data-av="..."] présentes dans la page.
    *   data-av="pill"    → élément .status (data-state + texte)
    *   data-av="title"   → titre (Ouvert maintenant…)
-   *   data-av="detail"  → détail (Ferme à 17:30…)
+   *   data-av="detail"  → détail (Ferme à 17:00…)
    *   data-av="badge"   → libellé de saison / férié
    *   data-av="clock"   → horloge locale HH:MM
    *   data-av="week"    → tableau hebdomadaire

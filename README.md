@@ -13,25 +13,32 @@ Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présenta
 | Deux univers, un portail | Transition circulaire fluide entre les deux sites depuis le point cliqué, sans rechargement visible. |
 | Bilingue FR / EN | Bascule instantanée, mémorisée sur l'appareil. Le français est la langue par défaut et reste lisible sans JavaScript. |
 | Design génératif | Champ de flux (courants / corridors) sur la page douane, vagues et trajectoire aérienne sur la page transport. Pause automatique hors écran, rendu statique si l'utilisateur préfère réduire les animations. |
-| Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone et l'e-mail. |
+| Expérience de défilement | Défilement inertiel à la molette, hero épinglé qui recule sous le « rideau » des sections, cartes empilées pour le parcours, section de services horizontale épinglée (transport), texte qui s'allume mot à mot, teinte d'ambiance évolutive, barre de progression. Désactivable dans `config.js` (`ui.smoothScroll`, `ui.scrollEffects`) et automatiquement coupé si l'utilisateur préfère réduire les animations. |
+| Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone, l'e-mail et le code Plus. Carte Google Maps intégrée depuis les coordonnées de la configuration, sans clé API. |
 | Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
 | Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
 
-## À compléter avant la mise en ligne
+## Données du bureau
 
 Toutes les données modifiables sont dans **`assets/js/config.js`** :
 
-1. `contact.phone`, `contact.phoneRaw`, `contact.whatsapp`, `contact.email` ;
-2. `contact.address.line1` / `line2` et `contact.mapsQuery` (lien « Itinéraire ») ;
-3. `brand.license` — numéro d'agrément du commissionnaire ;
-4. `hours.regular`, `hours.seasons` (horaires d'été), `hours.overrides` (Ramadan…), `hours.closures` (congés), `hours.movingHolidays` (Aïd, Mouled… à saisir chaque année) ;
-5. `transport.*` — coordonnées propres à By Ocean and Air Transport, si différentes.
+| Donnée | Valeur en place |
+| --- | --- |
+| Téléphone / WhatsApp | +216 99 976 872 |
+| E-mail | maazaouitransit@gmail.com |
+| Adresse | Radès, Ben Arous · code Plus **Q75J+48M** (36,757838 N / 10,280797 E) — rue et numéro facultatifs : les saisir en `contact.address.line1` et déplacer « Radès » en `line2` |
+| Agrément | n° 776 |
+| Horaires | Lundi → vendredi 08:00–17:00 · samedi 08:00–14:00 · dimanche fermé |
 
-Également :
+À maintenir dans le temps :
 
-- les horaires dans les données structurées de `index.html` (`openingHoursSpecification`) doivent refléter `config.js` ;
-- l'URL du site dans `robots.txt` et `sitemap.xml` si un nom de domaine personnalisé est utilisé ;
-- les visuels de partage `assets/img/og-cover.png` et `assets/img/og-cover-transport.png` (1200 × 630) sont fournis ; les régénérer si le slogan change.
+1. `hours.movingHolidays` — fêtes religieuses (le bureau ferme pour l'Aïd). 2027 est pré-rempli d'après les projections astronomiques : **confirmer les dates dès l'annonce officielle du Mufti**, puis saisir l'année suivante ;
+2. `hours.closures` — congés exceptionnels ; `hours.overrides` — périodes à horaires particuliers (Ramadan…) ;
+3. `hours.seasons` — horaires d'été, désactivés (un exemple commenté est fourni) ;
+4. `transport.*` — coordonnées propres à By Ocean and Air Transport, si elles diffèrent un jour ;
+5. les horaires dans les données structurées de `index.html` (`openingHoursSpecification`) doivent refléter `config.js` ;
+6. l'URL du site dans `robots.txt` et `sitemap.xml` si un nom de domaine personnalisé est utilisé ;
+7. les visuels de partage `assets/img/og-cover.png` et `assets/img/og-cover-transport.png` (1200 × 630) sont fournis ; les régénérer si le slogan change.
 
 ## Mise en ligne (GitHub Pages)
 
@@ -59,16 +66,19 @@ assets/css/base.css        Jetons de design (deux thèmes), reset, typographie
 assets/css/components.css  Composants partagés (navigation, cartes, portail, formulaire…)
 assets/css/customs.css     Mise en page de la page douane
 assets/css/ocean.css       Mise en page de la page transport
+assets/css/scroll.css      Effets de défilement (actifs sous html.fx)
 assets/js/config.js        ★ Données métier modifiables
 assets/js/i18n.js          Dictionnaire anglais et bascule de langue
 assets/js/availability.js  Moteur d'horaires (fuseau, saisons, fériés)
 assets/js/canvas-flow.js   Animation « champ de flux »
 assets/js/canvas-ocean.js  Animation « vagues et trajectoire aérienne »
 assets/js/core.js          Orchestration de l'interface
+assets/js/scroll.js        Moteur des effets de défilement (une seule boucle rAF)
 ```
 
 ## Limites connues
 
-- Les fêtes religieuses (dates mobiles) ne sont pas calculées : elles se saisissent dans `hours.movingHolidays` après l'annonce officielle.
+- Les fêtes religieuses (dates mobiles) ne sont pas calculées : elles sont saisies à titre prévisionnel dans `hours.movingHolidays` (2027 pré-rempli) et doivent être confirmées après l'annonce officielle.
+- Si l'embed Google Maps ne charge pas (réseau bloqué), la page d'erreur de l'iframe masque le repli quadrillé : limite navigateur, sans incidence en production.
 - Le formulaire n'envoie rien par lui-même : il ouvre la messagerie ou WhatsApp du visiteur. Un service d'envoi (Formspree, Netlify Forms…) peut être branché ultérieurement.
 - Les polices sont chargées depuis Google Fonts ; sans connexion, le site bascule sur les polices système.

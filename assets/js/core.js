@@ -97,6 +97,25 @@
       const v = getPath(model, el.dataset.copyBind);
       if (v !== undefined) el.dataset.copy = pick(v);
     }
+    // Carte intégrée : construite depuis les coordonnées de la configuration (aucune clé API requise).
+    for (const el of $$("[data-map]")) {
+      const g = c.geo;
+      if (!g || typeof g.lat !== "number" || typeof g.lng !== "number") {
+        el.hidden = true;
+        continue;
+      }
+      const src = `https://maps.google.com/maps?q=${g.lat},${g.lng}&z=16&hl=${lang()}&output=embed`;
+      let f = el.querySelector("iframe");
+      if (!f) {
+        f = document.createElement("iframe");
+        f.loading = "lazy";
+        f.referrerPolicy = "no-referrer-when-downgrade";
+        f.setAttribute("allowfullscreen", "");
+        el.appendChild(f);
+      }
+      if (f.getAttribute("src") !== src) f.src = src; // suit la langue courante
+      f.title = el.dataset.mapTitle || "Google Maps";
+    }
     for (const el of $$("[data-count-bind]")) {
       const v = getPath(model, el.dataset.countBind);
       if (v !== undefined) {
@@ -710,7 +729,6 @@
     initReveal();
     initClipboard();
     initForm();
-    initSteps();
     initCanvases();
     initAvailability();
   }

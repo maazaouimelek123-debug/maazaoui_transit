@@ -14,33 +14,45 @@
 window.MZ = window.MZ || {};
 
 MZ.SITE = {
+  /* -------------------------------------------------------------- Interface */
+  ui: {
+    /* Défilement inertiel à la molette (bureau uniquement). */
+    smoothScroll: true,
+    /* Effets pilotés par le défilement (hero épinglé, cartes empilées…). */
+    scrollEffects: true,
+  },
+
   /* ---------------------------------------------------------------- Marque */
   brand: {
     name: "Maazaoui Transit",
     since: 2010,
     tagline: { fr: "Commissionnaire en douane agréé", en: "Licensed customs broker" },
-    /* À COMPLÉTER : numéro d'agrément délivré par la Direction Générale des Douanes */
-    license: { fr: "Agrément n° — à compléter", en: "License no. — to be completed" },
-    city: "Tunis",
+    /* Numéro d'agrément de commissionnaire en douane */
+    license: { fr: "Agrément n° 776", en: "License no. 776" },
+    city: "Radès",
     country: { fr: "Tunisie", en: "Tunisia" },
   },
 
   /* ----------------------------------------------------------- Coordonnées */
   contact: {
-    /* À COMPLÉTER : numéro affiché (avec espaces) et numéro brut (sans espaces, indicatif inclus) */
-    phone: "+216 00 000 000",
-    phoneRaw: "+21600000000",
-    /* À COMPLÉTER : numéro WhatsApp au format international sans « + » ni espaces */
-    whatsapp: "21600000000",
-    /* À COMPLÉTER */
-    email: "contact@maazaoui-transit.tn",
-    /* À COMPLÉTER : adresse postale du bureau */
+    /* Numéro affiché (avec espaces) et numéro brut (sans espaces, indicatif inclus) */
+    phone: "+216 99 976 872",
+    phoneRaw: "+21699976872",
+    /* Numéro WhatsApp au format international sans « + » ni espaces */
+    whatsapp: "21699976872",
+    email: "maazaouitransit@gmail.com",
+    /* Adresse du bureau. Quand la rue et le numéro seront connus, les mettre en ligne 1
+       et déplacer la ville en ligne 2 (ex. line2: "Radès, Ben Arous · Tunisie"). */
     address: {
-      line1: { fr: "Adresse du bureau — à compléter", en: "Office address — to be completed" },
-      line2: { fr: "Tunis, Tunisie", en: "Tunis, Tunisia" },
+      line1: { fr: "Radès", en: "Radès" },
+      line2: { fr: "Ben Arous, Tunisie", en: "Ben Arous, Tunisia" },
     },
-    /* Requête utilisée pour le lien « Itinéraire » (Google Maps) */
-    mapsQuery: "Maazaoui Transit, Tunis, Tunisie",
+    /* Code Plus Google de l'emplacement exact (fourni par le bureau). */
+    plusCode: "Q75J+48M",
+    /* Coordonnées décodées depuis le code Plus (précision ≈ 3 m). Alimentent la carte et les données structurées. */
+    geo: { lat: 36.757838, lng: 10.280797 },
+    /* Requête utilisée pour le lien « Itinéraire » (Google Maps) : le code Plus pointe exactement sur le bureau. */
+    mapsQuery: "Q75J+48M Radès, Tunisia",
   },
 
   /* -------------------------------------------------- Société de transport */
@@ -60,32 +72,25 @@ MZ.SITE = {
 
     /* Horaires réguliers. Format "HH:MM". Un tableau vide = fermé. */
     regular: {
-      mon: [["08:00", "12:30"], ["14:00", "17:30"]],
-      tue: [["08:00", "12:30"], ["14:00", "17:30"]],
-      wed: [["08:00", "12:30"], ["14:00", "17:30"]],
-      thu: [["08:00", "12:30"], ["14:00", "17:30"]],
-      fri: [["08:00", "12:30"], ["14:00", "17:30"]],
-      sat: [["08:00", "13:00"]],
+      mon: [["08:00", "17:00"]],
+      tue: [["08:00", "17:00"]],
+      wed: [["08:00", "17:00"]],
+      thu: [["08:00", "17:00"]],
+      fri: [["08:00", "17:00"]],
+      sat: [["08:00", "14:00"]],
       sun: [],
     },
 
-    /* Saisons récurrentes (chaque année). from/to au format "MM-JJ", bornes incluses. */
-    seasons: [
-      {
-        label: { fr: "Horaires d'été · séance unique", en: "Summer hours · single session" },
-        from: "07-01",
-        to: "08-31",
-        days: {
-          mon: [["07:30", "14:00"]],
-          tue: [["07:30", "14:00"]],
-          wed: [["07:30", "14:00"]],
-          thu: [["07:30", "14:00"]],
-          fri: [["07:30", "14:00"]],
-          sat: [],
-          sun: [],
-        },
-      },
-    ],
+    /* Saisons récurrentes (chaque année). from/to au format "MM-JJ", bornes incluses.
+       Exemple d'horaires d'été en séance unique (désactivé : le bureau garde ses horaires toute l'année) :
+       {
+         label: { fr: "Horaires d'été · séance unique", en: "Summer hours · single session" },
+         from: "07-01", to: "08-31",
+         days: { mon: [["07:30","14:00"]], tue: [["07:30","14:00"]], wed: [["07:30","14:00"]],
+                 thu: [["07:30","14:00"]], fri: [["07:30","14:00"]], sat: [], sun: [] }
+       }
+    */
+    seasons: [],
 
     /* Périodes ponctuelles (dates complètes "AAAA-MM-JJ"), prioritaires sur les saisons.
        Exemple pour le Ramadan :
@@ -115,10 +120,17 @@ MZ.SITE = {
       { date: "12-17", fr: "Fête de la Révolution", en: "Revolution Day" },
     ],
 
-    /* Fêtes religieuses (dates mobiles, à saisir chaque année après annonce officielle).
-       Exemple : { date: "2026-03-20", fr: "Aïd el-Fitr", en: "Eid al-Fitr" }
-    */
-    movingHolidays: [],
+    /* Fêtes religieuses (dates mobiles). Le bureau ferme pour l'Aïd.
+       Chaque entrée accepte soit une date unique { date }, soit une plage { from, to } (bornes incluses).
+       ⚠ Les dates ci-dessous sont des projections astronomiques : À CONFIRMER chaque année dès l'annonce
+       officielle du Mufti de la République (généralement la veille pour l'Aïd el-Fitr, ~10 jours avant pour l'Aïd al-Adha).
+       Les fêtes 2026 sont passées ; 2027 est pré-rempli. */
+    movingHolidays: [
+      { from: "2027-03-09", to: "2027-03-11", fr: "Aïd el-Fitr", en: "Eid al-Fitr" },
+      { from: "2027-05-16", to: "2027-05-17", fr: "Aïd al-Adha", en: "Eid al-Adha" },
+      { date: "2027-06-06", fr: "Ras el-Am el-Hijri", en: "Islamic New Year" },
+      { date: "2027-08-14", fr: "Mouled", en: "Mawlid" },
+    ],
 
     /* Seuils d'affichage « ouvre bientôt » / « ferme bientôt » (minutes). */
     thresholds: { openingSoon: 60, closingSoon: 30 },

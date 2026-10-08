@@ -1,0 +1,230 @@
+/* =============================================================================
+   SCROLL — styles des effets pilotés par le défilement (actifs sous html.fx)
+   ========================================================================== */
+
+/* ---------------------------------------------------- Barre de progression */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 101;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform-origin: left center;
+  transform: scaleX(var(--scroll-p, 0));
+  opacity: 0;
+}
+
+html.fx .scroll-progress {
+  opacity: 1;
+}
+
+/* ------------------------------------------------- Hero épinglé + rideau */
+html.fx .hero,
+html.fx .ohero {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+}
+
+html.fx .hero > .container,
+html.fx .ohero > .container,
+html.fx .ohero-foot {
+  transform: translate3d(0, calc(var(--hp, 0) * -90px), 0) scale(calc(1 - var(--hp, 0) * 0.07));
+  opacity: calc(1 - var(--hp, 0) * 1.25);
+  transform-origin: 50% 25%;
+  will-change: transform, opacity;
+}
+
+html.fx .hero-canvas,
+html.fx .ohero-canvas {
+  opacity: calc(0.9 * (1 - var(--hp, 0)));
+}
+
+html.fx .hero-year {
+  opacity: calc(1 - var(--hp, 0));
+}
+
+html.fx .hero.is-passed .hero-canvas,
+html.fx .ohero.is-passed .ohero-canvas {
+  display: none;
+}
+
+html.fx .hero.is-passed,
+html.fx .ohero.is-passed {
+  visibility: hidden;
+}
+
+/* Le rideau : tout ce qui suit le hero glisse par-dessus */
+html.fx .curtain {
+  position: relative;
+  z-index: 1;
+  --cur-a: var(--aurora-a);
+  --cur-b: var(--aurora-b);
+  --cur-c: var(--aurora-c);
+  background:
+    radial-gradient(70vmax 50vmax at 12% 0%, var(--cur-a), transparent 70%),
+    radial-gradient(60vmax 45vmax at 92% 28%, var(--cur-b), transparent 70%),
+    radial-gradient(60vmax 45vmax at 6% 58%, var(--cur-c), transparent 70%),
+    radial-gradient(70vmax 50vmax at 85% 92%, var(--cur-a), transparent 70%),
+    var(--bg);
+  box-shadow: 0 -40px 100px -20px rgba(0, 0, 0, 0.8);
+}
+
+@supports (color: color-mix(in srgb, red, blue 50%)) {
+  html.fx .curtain {
+    --cur-a: color-mix(in srgb, var(--aurora-a), rgb(var(--tint-rgb, 63 217 203) / 0.32) calc(var(--tint-mix, 0) * 100%));
+    --cur-b: color-mix(in srgb, var(--aurora-b), rgb(var(--tint-rgb, 63 217 203) / 0.26) calc(var(--tint-mix, 0) * 100%));
+    --cur-c: color-mix(in srgb, var(--aurora-c), rgb(var(--tint-rgb, 63 217 203) / 0.22) calc(var(--tint-mix, 0) * 100%));
+  }
+}
+
+html.fx .curtain > :first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+html.fx .footer {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+}
+
+/* -------------------------------------------------- Texte mot à mot */
+[data-scrub-text] .sw {
+  color: var(--text-3);
+  transition: color 0.35s ease;
+}
+
+[data-scrub-text] .sw.on {
+  color: var(--text);
+}
+
+html:not(.fx) [data-scrub-text] .sw {
+  color: inherit;
+}
+
+/* --------------------------------------------------- Parallaxe */
+html.fx [data-parallax] {
+  will-change: transform;
+}
+
+/* --------------------------------------- Section horizontale épinglée */
+@media (min-width: 1000px) {
+  html.fx .hscroll {
+    padding-block: 0;
+  }
+
+  html.fx .hscroll-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 100%);
+    grid-template-rows: auto 1fr;
+    align-content: start;
+    padding-top: calc(var(--nav-h) + 2.5rem);
+    padding-bottom: 2rem;
+  }
+
+  html.fx .hscroll-sticky .section-head {
+    margin-bottom: 1.5rem;
+  }
+
+  html.fx .hscroll-track {
+    display: flex;
+    gap: 22px;
+    align-items: stretch;
+    padding-inline: max(var(--gutter), calc((100vw - var(--container)) / 2));
+    padding-right: max(var(--gutter), calc((100vw - var(--container)) / 2));
+    width: max-content;
+    will-change: transform;
+    align-self: center;
+    justify-self: start;
+  }
+
+  html.fx .hs-card {
+    flex: 0 0 clamp(380px, 31vw, 540px);
+    min-height: min(400px, 48vh);
+    max-height: 60vh;
+  }
+
+  html.fx .hs-card.duo-card {
+    flex-basis: clamp(460px, 38vw, 640px);
+  }
+
+  html.fx .hscroll-hint {
+    display: inline-flex;
+  }
+}
+
+.hscroll-hint {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.hscroll-hint i {
+  display: block;
+  width: 56px;
+  height: 1px;
+  background: var(--line-strong);
+  position: relative;
+  overflow: hidden;
+}
+
+.hscroll-hint i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateX(-100%);
+  animation: hs-slide 2.2s var(--ease-in-out) infinite;
+}
+
+@keyframes hs-slide {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Repli (mobile ou sans effets) : grille classique */
+.hscroll-track {
+  width: min(var(--container), 100% - 2 * var(--gutter));
+  margin-inline: auto;
+  display: grid;
+  gap: clamp(14px, 2vw, 22px);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 680px) {
+  .hscroll-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hscroll-track .duo-card {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1000px) {
+  html:not(.fx) .hscroll-track {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  html:not(.fx) .hscroll-track .duo-card {
+    grid-column: span 3;
+  }
+
+  html:not(.fx) .hscroll-track .card {
+    grid-column: span 2;
+  }
+}

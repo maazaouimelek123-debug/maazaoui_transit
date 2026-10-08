@@ -184,41 +184,34 @@
 .steps {
   position: relative;
   display: grid;
-  gap: 0;
-}
-
-.steps::before {
-  content: "";
-  position: absolute;
-  left: 23px;
-  top: 24px;
-  bottom: 24px;
-  width: 1px;
-  background: var(--line-strong);
-}
-
-.steps-progress {
-  position: absolute;
-  left: 23px;
-  top: 24px;
-  width: 1px;
-  height: 0;
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.6);
-  transition: height 0.2s linear;
+  gap: 18px;
 }
 
 .step {
-  position: relative;
+  position: sticky;
+  top: calc(var(--nav-h) + 18px + var(--i, 0) * 14px);
   display: grid;
   grid-template-columns: 48px 1fr;
   gap: clamp(18px, 3vw, 36px);
-  padding-block: clamp(1.6rem, 3vw, 2.4rem);
-  border-bottom: 1px solid var(--line);
+  padding: clamp(22px, 3vw, 34px);
+  min-height: 38vh;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, #141d33 0%, #0c1324 100%);
+  box-shadow: 0 -24px 60px -30px rgba(0, 0, 0, 0.9), 0 30px 60px -40px rgba(0, 0, 0, 0.8);
+  transform-origin: 50% 0;
+  transform: scale(calc(1 - var(--sp, 0) * 0.06));
+  filter: brightness(calc(1 - var(--sp, 0) * 0.45));
+  will-change: transform, filter;
 }
 
-.step:last-child {
-  border-bottom: 0;
+.step::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(60% 80% at 100% 0%, rgba(var(--accent-rgb), 0.1), transparent 60%);
+  pointer-events: none;
 }
 
 .step-num {
@@ -227,7 +220,6 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--bg);
   border: 1px solid var(--line-strong);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -249,6 +241,8 @@
   display: grid;
   gap: 8px;
   align-content: start;
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 900px) {
@@ -259,7 +253,7 @@
 }
 
 .step-body .h3 {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
 }
 
 .step-body p {
@@ -272,7 +266,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 .step-tags span {
@@ -286,10 +280,24 @@
   color: var(--text-3);
 }
 
+@media (max-width: 760px) {
+  .step {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    min-height: 0;
+    top: calc(var(--nav-h) + 10px + var(--i, 0) * 8px);
+  }
+}
+
 .process-aside {
-  position: sticky;
-  top: calc(var(--nav-h) + 24px);
   align-self: start;
+}
+
+@media (min-width: 1000px) {
+  .process-aside {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+  }
 }
 
 .process-grid {
@@ -605,4 +613,94 @@
   color: var(--text-2);
   font-size: var(--fs-sm);
   margin-bottom: 24px;
+}
+
+/* ------------------------------------------------------------------- Carte */
+.map-wrap {
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  display: grid;
+  gap: 14px;
+}
+
+.map {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  aspect-ratio: 16 / 7;
+  isolation: isolate;
+}
+
+/* Sous 720 px : hauteur fixe (un min-height combiné à aspect-ratio se transférerait en largeur minimale). */
+@media (max-width: 720px) {
+  .map {
+    aspect-ratio: auto;
+    height: 300px;
+  }
+}
+
+.map[hidden] {
+  display: none;
+}
+
+.map iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  /* Adapte la carte au thème sombre sans clé API ni style personnalisé.
+     Limite connue : si l'embed ne charge pas, la page d'erreur opaque de l'iframe masque le repli quadrillé. */
+  filter: invert(0.92) hue-rotate(195deg) saturate(0.55) brightness(0.92) contrast(1.05);
+}
+
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  color: rgba(var(--accent-rgb), 0.45);
+  background:
+    radial-gradient(60% 60% at 50% 50%, rgba(var(--accent-rgb), 0.08), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 39px, var(--line) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, var(--line) 39px 40px);
+}
+
+.map-fallback svg {
+  width: 48px;
+  height: 48px;
+}
+
+.map-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-inline: 6px;
+}
+
+.map-caption b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-lg);
+  line-height: 1.2;
+}
+
+.plus-code {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--fs-xs);
+}
+
+.plus-code b {
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--accent-2);
 }
