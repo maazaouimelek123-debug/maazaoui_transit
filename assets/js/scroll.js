@@ -117,9 +117,13 @@
       let hp;
       if (sticky) {
         hp = clamp(y / ((hero.offsetHeight || vh) * 0.9), 0, 1);
+      } else if (ref) {
+        // Référence de mise en page (non transformée) : le .hero n'est pas transformé,
+        // et .hero-stats s'y positionne via offsetTop → pas de rétroaction du fondu.
+        const top = hero.getBoundingClientRect().top + ref.offsetTop;
+        hp = clamp(-top / Math.max(ref.offsetHeight, vh * 0.3), 0, 1);
       } else {
-        const r = (ref || hero).getBoundingClientRect();
-        hp = clamp(-r.top / Math.max(1, r.height), 0, 1);
+        hp = clamp(-hero.getBoundingClientRect().bottom / (vh * 0.3) + 1, 0, 1);
       }
       hp = Math.round(hp * 1000) / 1000;
       if (hp === last) return null;
@@ -145,7 +149,6 @@
   /* Progression de lecture : écrite sur ses seuls consommateurs (barre, rail) */
   (function progress() {
     const bar = $(".scroll-progress");
-    const rail = $(".rail");
     let last = "";
     register((y) => {
       const max = Math.max(1, html.scrollHeight - vh);
@@ -154,7 +157,8 @@
       last = v;
       return () => {
         if (bar) bar.style.transform = `scaleX(${v})`;
-        if (rail) rail.style.setProperty("--scroll-p", v);
+        const fill = $(".rail > .rail-fill"); // élément sans descendant : transform inline uniquement
+        if (fill) fill.style.transform = `scaleY(${v})`;
       };
     });
   })();
@@ -348,6 +352,7 @@
     if (!items.length) return;
 
     const place = () => {
+      vh = window.innerHeight; // l'écouteur global peut ne pas encore avoir tourné
       // Toutes les lectures d'abord, puis toutes les écritures (pas de mise en page forcée par graine).
       const reads = items.map((it) => ({ h: it.el.offsetHeight || 1, top: it.el.offsetTop, left: it.el.offsetLeft, w: it.el.offsetWidth }));
       items.forEach((it, i) => {
@@ -435,6 +440,7 @@
             el.style.clipPath = `circle(${(p * 125).toFixed(1)}% at 50% ${el.style.getPropertyValue("--oy") || "50%"})`;
           }
           setVar(it.seed, "--sp", p.toFixed(3));
+          it.seed.classList.toggle("is-done", p >= 0.999);
           if (rising && !it.burst && p > 0.28 && p < 0.999) {
             it.burst = true;
             const f = flow();
@@ -455,12 +461,14 @@
     let active = -1;
     const build = () => {
       const en = html.lang === "en";
-      rail.innerHTML = sections
-        .map((s, i) => {
-          const label = (en && s.dataset.railEn) || s.dataset.rail;
-          return `<a class="rail-node" href="#${s.id}" style="--i:${i}" aria-label="${label}"><span aria-hidden="true">${label}</span></a>`;
-        })
-        .join("");
+      rail.innerHTML =
+        '<i class="rail-fill" aria-hidden="true"></i>' +
+        sections
+          .map((s, i) => {
+            const label = (en && s.dataset.railEn) || s.dataset.rail;
+            return `<a class="rail-node" href="#${s.id}" style="--i:${i}" aria-label="${label}"><span aria-hidden="true">${label}</span></a>`;
+          })
+          .join("");
       nodes = $$(".rail-node", rail);
       active = -1;
       dirty = true;

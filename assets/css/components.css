@@ -1288,6 +1288,11 @@ html.veil-in .page-veil {
   pointer-events: none;
 }
 
+.portal.is-offscreen .portal-ring,
+.portal.is-offscreen .portal-text {
+  animation-play-state: paused;
+}
+
 .portal-text text {
   font-family: var(--font-mono);
   font-size: 3.1px;

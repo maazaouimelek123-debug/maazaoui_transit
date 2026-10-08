@@ -60,14 +60,14 @@ await run([
         blooms: document.querySelectorAll("[data-bloom]").length,
         seeds: document.querySelectorAll(".seed").length,
         railActive: document.querySelector(".rail-node.is-active span") && document.querySelector(".rail-node.is-active span").textContent,
-        railFill: getComputedStyle(document.querySelector(".rail"), "::before").transform,
+        railFill: document.querySelector(".rail > .rail-fill") && document.querySelector(".rail > .rail-fill").style.transform,
       }));
       console.log("misc:", misc);
       assert(/scaleX\(0\.[5-9]/.test(misc.progress), "progress bar not updated");
       assert(Number(misc.depth) > 0.4, "field depth not updated");
       assert(misc.seeds === misc.blooms && misc.bloomed >= 6, "blooms/seeds inconsistent");
       assert(misc.railActive === "Portail", `rail active label: ${misc.railActive}`);
-      assert(!/matrix\(1, 0, 0, 0,/.test(misc.railFill), "rail fill never filled");
+      assert(/scaleY\(0\.[1-9]/.test(misc.railFill || ""), "rail fill never filled");
       // Retour en haut : hero visible
       await scrollTo(page, 0);
       await page.waitForTimeout(500);
