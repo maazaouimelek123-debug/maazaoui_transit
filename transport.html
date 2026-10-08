@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/ocean.css">
   <link rel="stylesheet" href="assets/css/scroll.css">
+  <noscript><style>.loader,.page-veil,.cursor,.cursor-ring{display:none!important}[data-reveal],[data-reveal-stagger]>*,.split-words .w>span{opacity:1!important;transform:none!important}</style></noscript>
 
   <script type="application/ld+json">
   {
@@ -133,7 +134,7 @@
 
   <main id="main">
     <!-- ============================================================ Hero -->
-    <section class="ohero" aria-labelledby="ohero-title">
+    <section class="ohero" id="accueil" aria-labelledby="ohero-title" data-rail="Accueil" data-rail-en="Home">
       <canvas class="ohero-canvas" data-canvas="ocean" aria-hidden="true"></canvas>
 
       <div class="container">
@@ -183,6 +184,7 @@
     </section>
 
     <div class="curtain">
+    <div class="tint-veil" aria-hidden="true"></div>
     <!-- ========================================================= Marquee -->
     <div class="marquee" aria-hidden="true">
       <div class="marquee-track">
@@ -205,7 +207,7 @@
     </div>
 
     <!-- ======================================================== Services -->
-    <section class="section hscroll" id="services" aria-labelledby="services-title" data-hscroll>
+    <section class="section hscroll" id="services" aria-labelledby="services-title" data-hscroll data-rail="Services" data-rail-en="Services">
       <div class="hscroll-sticky">
         <div class="container">
           <div class="section-head section-head--split">
@@ -268,15 +270,15 @@
     </section>
 
     <!-- ======================================================== Liaisons -->
-    <section class="section section--line" id="liaisons" aria-labelledby="lanes-title">
+    <section class="section section--line" id="liaisons" aria-labelledby="lanes-title" data-rail="Liaisons" data-rail-en="Lanes">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head" data-bloom>
           <p class="eyebrow" data-reveal data-i18n="t.ln.eyebrow">Liaisons</p>
           <h2 class="h2" id="lanes-title" data-reveal style="--d:80" data-i18n="t.ln.title">Les corridors <span class="em">que nous opérons.</span></h2>
           <p class="lead" data-reveal style="--d:160" data-scrub-text data-i18n="t.ln.lead">Délais indicatifs de port à port ou d'aéroport à aéroport, hors dédouanement. Les autres destinations sont étudiées sur demande.</p>
         </div>
 
-        <div class="board" data-reveal>
+        <div class="board" data-bloom>
           <div class="board-head">
             <span data-i18n="t.ln.h1">Origine → Destination</span>
             <span data-i18n="t.ln.h2">Ville</span>
@@ -328,13 +330,13 @@
     </section>
 
     <!-- ========================================================= Méthode -->
-    <section class="section section--line" id="methode" aria-labelledby="method-title">
+    <section class="section section--line" id="methode" aria-labelledby="method-title" data-rail="Méthode" data-rail-en="Method">
       <div class="container">
-        <div class="section-head section-head--center">
+        <div class="section-head section-head--center" data-bloom>
           <p class="eyebrow" data-reveal data-i18n="t.mt.eyebrow">Méthode</p>
           <h2 class="h2" id="method-title" data-reveal style="--d:80" data-i18n="t.mt.title">Cinq étapes, <span class="em">un seul fil.</span></h2>
         </div>
-        <div class="flow" data-reveal-stagger>
+        <div class="flow" data-reveal-stagger data-bloom>
           <div class="flow-step"><span class="n">01</span><b data-i18n="t.mt.s1.t">Cotation</b><p data-i18n="t.mt.s1.p">Nature, volume, poids, incoterm et délai souhaité. Vous recevez un devis détaillé, transport et dédouanement compris.</p></div>
           <div class="flow-step"><span class="n">02</span><b data-i18n="t.mt.s2.t">Enlèvement</b><p data-i18n="t.mt.s2.p">Coordination avec votre fournisseur ou votre usine, pré-acheminement jusqu'au port ou à l'aéroport de départ.</p></div>
           <div class="flow-step"><span class="n">03</span><b data-i18n="t.mt.s3.t">Transport</b><p data-i18n="t.mt.s3.p">Réservation, documents de transport (B/L, LTA), suivi des escales et information proactive en cas d'aléa.</p></div>
@@ -345,14 +347,14 @@
     </section>
 
     <!-- ========================================== Portail → Maazaoui Transit -->
-    <section class="section section--line portal-section portal-section--back" aria-labelledby="back-title" data-tint="216 181 102">
+    <section class="section section--line portal-section portal-section--back" id="groupe" aria-labelledby="back-title" data-tint="216 181 102" data-rail="Le groupe" data-rail-en="The group">
       <div class="container">
-        <div class="section-head section-head--center">
+        <div class="section-head section-head--center" data-bloom>
           <p class="eyebrow" data-reveal data-i18n="t.bk.eyebrow">Le groupe</p>
           <h2 class="h2" id="back-title" data-reveal style="--d:80" data-i18n="t.bk.title">Derrière chaque expédition, <span class="em">un commissionnaire en douane.</span></h2>
           <p class="lead" data-reveal style="--d:160" data-i18n="t.bk.lead">By Ocean and Air Transport est née du bureau Maazaoui Transit, actif depuis 2010. Retrouvez l'expertise douanière, les horaires et les coordonnées du bureau.</p>
         </div>
-        <div class="portal-wrap" data-reveal="scale">
+        <div class="portal-wrap" data-bloom>
           <a class="portal" href="index.html" data-portal data-cursor='{"fr":"Retour","en":"Back"}' aria-label="Retour au site de Maazaoui Transit">
             <span class="portal-halo" aria-hidden="true"></span>
             <span class="portal-ring" aria-hidden="true"></span>
@@ -373,9 +375,9 @@
     </section>
 
     <!-- ========================================================= Contact -->
-    <section class="section section--line" id="contact" aria-labelledby="tcontact-title">
+    <section class="section section--line" id="contact" aria-labelledby="tcontact-title" data-rail="Cotation" data-rail-en="Quote">
       <div class="container">
-        <div class="ocontact">
+        <div class="ocontact" data-bloom>
           <div>
             <p class="eyebrow" data-reveal data-i18n="t.ct.eyebrow">Cotation</p>
             <h2 class="h2" id="tcontact-title" data-reveal style="--d:80" data-i18n="t.ct.title">Décrivez l'expédition, <span class="em">nous chiffrons.</span></h2>
@@ -457,6 +459,8 @@
     </section>
     </div><!-- /.curtain -->
   </main>
+
+  <nav class="rail" aria-label="Progression dans la page" data-i18n-attr="aria-label:nav.rail"></nav>
 
   <footer class="footer">
     <div class="container">

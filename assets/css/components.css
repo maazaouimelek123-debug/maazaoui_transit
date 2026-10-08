@@ -636,7 +636,8 @@ html.veil-in .page-veil {
   opacity: 1;
 }
 
-.card:hover {
+.card:hover,
+[data-reveal-stagger].is-visible > .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
 }
@@ -1287,6 +1288,11 @@ html.veil-in .page-veil {
   pointer-events: none;
 }
 
+.portal.is-offscreen .portal-ring,
+.portal.is-offscreen .portal-text {
+  animation-play-state: paused;
+}
+
 .portal-text text {
   font-family: var(--font-mono);
   font-size: 3.1px;
@@ -1624,15 +1630,16 @@ html.veil-in .page-veil {
   content: "";
   position: absolute;
   left: 0;
-  top: -100%;
+  top: 0;
   width: 100%;
   height: 100%;
   background: var(--accent);
-  animation: scroll-drop 2.2s var(--ease-in-out) infinite;
+  transform: translateY(-100%);
+  animation: scroll-drop 2.2s var(--ease-in-out) infinite; /* transform : pas de mise en page */
 }
 
 @keyframes scroll-drop {
   to {
-    top: 100%;
+    transform: translateY(100%);
   }
 }

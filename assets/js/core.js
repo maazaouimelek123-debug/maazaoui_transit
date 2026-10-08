@@ -144,6 +144,7 @@
         loader.classList.add("is-done");
         body.classList.remove("is-locked");
         body.classList.add("is-ready");
+        reanchor();
         setTimeout(() => loader.remove(), 1000);
       }, wait);
     };
@@ -224,18 +225,22 @@
     const nav = $(".nav");
     if (!nav) return;
     let lastY = window.scrollY;
+    let eventY = lastY; // position lue dans l'événement (mise en page propre), jamais relue après les écritures d'effets
     let ticking = false;
+    const toTop = $(".to-top");
     const onScroll = () => {
-      const y = window.scrollY;
+      const y = eventY;
       nav.classList.toggle("is-scrolled", y > 24);
       const menuOpen = $("#menu") && $("#menu").classList.contains("is-open");
       if (!menuOpen) nav.classList.toggle("is-hidden", y > lastY && y > 160);
+      if (toTop) toTop.classList.toggle("is-visible", y > 900);
       lastY = y;
       ticking = false;
     };
     window.addEventListener(
       "scroll",
       () => {
+        eventY = window.scrollY;
         if (!ticking) {
           requestAnimationFrame(onScroll);
           ticking = true;
@@ -284,12 +289,8 @@
       window.matchMedia("(min-width: 1024px)").addEventListener("change", (e) => e.matches && setOpen(false));
     }
 
-    // Retour en haut
-    const toTop = $(".to-top");
-    if (toTop) {
-      window.addEventListener("scroll", () => toTop.classList.toggle("is-visible", window.scrollY > 900), { passive: true });
-      toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }));
-    }
+    // Retour en haut (visibilité gérée dans onScroll)
+    if (toTop) toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }));
   }
 
   /* ============================================ 05 · Curseur & magnétisme */
@@ -710,6 +711,28 @@
     if (air && MZ.canvasOcean) MZ.canvasOcean.mount(air, { plane: true, stars: 90, waves: 0, baseline: 0.95, accent2: "147, 243, 255" });
   }
 
+  /** Les animations décoratives du portail ne tournent que lorsqu'il est à l'écran. */
+  function initPortalPause() {
+    const portals = $$(".portal");
+    if (!portals.length || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const en of entries) en.target.classList.toggle("is-offscreen", !en.isIntersecting);
+    }, { rootMargin: "10% 0px" });
+    portals.forEach((p) => io.observe(p));
+  }
+
+  /** Après le préchargeur et les polices, la mise en page a pu bouger : on recale l'ancre demandée. */
+  function reanchor() {
+    if (!location.hash || location.hash.length < 2) return;
+    let target = null;
+    try {
+      target = document.querySelector(location.hash);
+    } catch (e) {
+      return;
+    }
+    if (target) target.scrollIntoView({ behavior: "instant", block: "start" });
+  }
+
   function initAvailability() {
     if (MZ.availability && SITE.hours && $("[data-av]")) MZ.availability.mount(SITE.hours);
   }
@@ -731,6 +754,8 @@
     initForm();
     initCanvases();
     initAvailability();
+    initPortalPause();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(reanchor, 60));
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
