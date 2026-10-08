@@ -101,33 +101,61 @@
   };
 
   /* Hero : recule et s'estompe. Épinglé (transport) → selon le défilement ;
-     en flux (accueil) → selon la sortie réelle de son bord inférieur. */
+     en flux (accueil) → selon la sortie du dernier bloc (.hero-stats) par le haut.
+     Les styles sont écrits directement sur les éléments concernés : une variable
+     CSS posée sur un conteneur forcerait le recalcul de style de tout son sous-arbre. */
   (function heroPin() {
     const hero = $(".hero, .ohero");
     if (!hero) return;
+    const container = hero.querySelector(":scope > .container");
+    const fades = [hero.querySelector(".hero-canvas, .ohero-canvas"), hero.querySelector(".hero-year")].filter(Boolean);
+    const foot = hero.querySelector(".ohero-foot");
+    const ref = hero.querySelector(".hero-stats");
+    let last = -1;
     register((y) => {
       const sticky = getComputedStyle(hero).position === "sticky";
       let hp;
       if (sticky) {
         hp = clamp(y / ((hero.offsetHeight || vh) * 0.9), 0, 1);
       } else {
-        const bottom = hero.getBoundingClientRect().bottom;
-        hp = clamp((vh * 0.6 - bottom) / (vh * 0.4), 0, 1);
+        const r = (ref || hero).getBoundingClientRect();
+        hp = clamp(-r.top / Math.max(1, r.height), 0, 1);
       }
-      const v = hp.toFixed(4);
+      hp = Math.round(hp * 1000) / 1000;
+      if (hp === last) return null;
+      last = hp;
+      const shift = sticky ? -90 : -36;
+      const shrink = sticky ? 0.07 : 0.04;
+      const fade = sticky ? 1.25 : 1;
       return () => {
-        setVar(hero, "--hp", v);
+        if (container) {
+          container.style.transform = `translate3d(0, ${(hp * shift).toFixed(1)}px, 0) scale(${(1 - hp * shrink).toFixed(4)})`;
+          container.style.opacity = clamp(1 - hp * fade, 0, 1).toFixed(3);
+        }
+        if (foot) {
+          foot.style.transform = `translate3d(0, ${(hp * shift).toFixed(1)}px, 0)`;
+          foot.style.opacity = clamp(1 - hp * fade, 0, 1).toFixed(3);
+        }
+        for (const el of fades) el.style.opacity = (0.9 * (1 - hp)).toFixed(3);
         hero.classList.toggle("is-passed", sticky && hp >= 1);
       };
     });
   })();
 
-  /* Progression de lecture : variable posée sur <html> (barre et rail en héritent) */
+  /* Progression de lecture : écrite sur ses seuls consommateurs (barre, rail) */
   (function progress() {
+    const bar = $(".scroll-progress");
+    const rail = $(".rail");
+    let last = "";
     register((y) => {
       const max = Math.max(1, html.scrollHeight - vh);
       const v = clamp(y / max, 0, 1).toFixed(4);
-      return () => setVar(html, "--scroll-p", v);
+      if (v === last) return null;
+      last = v;
+      return () => {
+        if (bar) bar.style.transform = `scaleX(${v})`;
+        if (rail) rail.style.setProperty("--scroll-p", v);
+      };
     });
   })();
 
@@ -147,7 +175,11 @@
         }
         return () => {
           cards.forEach((c, i) => {
-            setVar(c, "--sp", sps[i]);
+            const sp = Number(sps[i]);
+            const t = `scale(${(1 - sp * 0.06).toFixed(4)})`;
+            const f = `brightness(${(1 - sp * 0.45).toFixed(3)})`;
+            if (c.style.transform !== t) c.style.transform = t;
+            if (c.style.filter !== f) c.style.filter = f;
             c.classList.toggle("is-active", i === active);
           });
         };
@@ -185,7 +217,6 @@
         const tx = `translate3d(${(-p * extra).toFixed(1)}px, 0, 0)`;
         return () => {
           if (track.style.transform !== tx) track.style.transform = tx;
-          setVar(section, "--hx", p.toFixed(4));
         };
       });
     }
@@ -254,10 +285,13 @@
     });
   })();
 
-  /* Teinte d'ambiance (aurore et rideau lisent les variables sur <html>) */
+  /* Teinte d'ambiance : écrite sur le voile dédié .tint-veil (un élément, aucun descendant) */
   (function tint() {
     const sections = $$("[data-tint]");
-    if (!sections.length) return;
+    const veil = $(".tint-veil");
+    if (!sections.length || !veil) return;
+    let lastMix = "";
+    let lastRgb = "";
     register(() => {
       let best = 0;
       let rgb = null;
@@ -271,9 +305,12 @@
         }
       }
       const mix = best.toFixed(3);
+      if (mix === lastMix && rgb === lastRgb) return null;
+      lastMix = mix;
+      lastRgb = rgb;
       return () => {
-        setVar(html, "--tint-mix", mix);
-        if (rgb) setVar(html, "--tint-rgb", rgb);
+        veil.style.opacity = mix;
+        if (rgb) veil.style.setProperty("--tint-rgb", rgb);
       };
     });
   })();
@@ -283,10 +320,13 @@
     const field = $(".depth-field");
     if (!field) return;
     const canvas = field.querySelector("canvas");
+    let last = "";
     register((y) => {
       const max = Math.max(1, html.scrollHeight - vh);
       const eased = 1 - Math.pow(1 - clamp(y / max, 0, 1), 1.7);
-      const v = eased.toFixed(4);
+      const v = eased.toFixed(2); // pas de 1 % : imperceptible, et bien moins de recompositions
+      if (v === last) return null;
+      last = v;
       return () => {
         setVar(field, "--depth", v);
         if (canvas && canvas.__flow) canvas.__flow.setDepth(eased);
@@ -308,15 +348,17 @@
     if (!items.length) return;
 
     const place = () => {
-      for (const it of items) {
-        const h = it.el.offsetHeight || 1;
+      // Toutes les lectures d'abord, puis toutes les écritures (pas de mise en page forcée par graine).
+      const reads = items.map((it) => ({ h: it.el.offsetHeight || 1, top: it.el.offsetTop, left: it.el.offsetLeft, w: it.el.offsetWidth }));
+      items.forEach((it, i) => {
+        const { h, top, left, w } = reads[i];
         // Origine : le centre du bloc, mais au plus 12 % de la hauteur d'écran sous son
         // bord supérieur, pour que la graine soit vue comme un point avant d'éclore.
         it.oy = Math.min(h / 2, vh * 0.12);
         it.el.style.setProperty("--oy", `${((it.oy / h) * 100).toFixed(2)}%`);
-        it.seed.style.top = `${it.el.offsetTop + it.oy}px`;
-        it.seed.style.left = `${it.el.offsetLeft + it.el.offsetWidth / 2}px`;
-      }
+        it.seed.style.top = `${top + it.oy}px`;
+        it.seed.style.left = `${left + w / 2}px`;
+      });
       dirty = true;
     };
     place();
@@ -346,33 +388,53 @@
       return c && c.__flow;
     };
 
+    const mobile = window.matchMedia("(max-width: 760px)");
     register(() => {
       const start = vh * 0.98; // le haut du bloc entre par le bas de l'écran
       const end = vh * 0.52; // éclosion achevée quand il atteint la mi-hauteur
+      // Plancher d'ancre : levé par section, une fois la section vue puis repassée sous l'écran.
+      const sectionTops = new Map();
+      for (const it of items) {
+        if (it.floor && it.section && !sectionTops.has(it.section)) sectionTops.set(it.section, it.section.getBoundingClientRect().top);
+      }
       const results = items.map((it) => {
         const r = it.el.getBoundingClientRect();
-        if (it.floor) {
-          // Le plancher ne tombe qu'une fois le bloc réellement vu (ligne de départ franchie)
-          // puis dépassé vers le haut ; les images rendues avant le saut à l'ancre ne comptent pas.
-          if (r.top <= start) it.floorArmed = true;
+        if (it.floor && it.section) {
+          const st = sectionTops.get(it.section);
+          if (st <= start) it.floorArmed = true;
           else if (it.floorArmed) {
             it.floor = 0;
             it.floorArmed = false;
           }
         }
         const p = Math.max(it.floor, clamp((start - r.top) / (start - end), 0, 1));
-        return { r, p };
+        return { r, p: Math.round(p * 1000) / 1000 };
       });
+      const small = mobile.matches;
       return () => {
         items.forEach((it, i) => {
           const { r, p } = results[i];
           if (p === it.p) return;
           const rising = p > it.p;
           it.p = p;
-          const v = p.toFixed(4);
-          setVar(it.el, "--bp", v);
-          it.el.classList.toggle("is-bloomed", p >= 0.999);
-          setVar(it.seed, "--sp", v);
+          const el = it.el;
+          if (p >= 0.999) {
+            // Éclos : on rend la main à la feuille de style (survol, sticky, etc.)
+            el.style.transform = "";
+            el.style.opacity = "";
+            el.style.clipPath = "";
+            el.classList.add("is-bloomed");
+          } else {
+            const q = 1 - p;
+            const dz = small ? -320 : -720;
+            const dy = small ? 28 : 48;
+            const sc = small ? 0.72 + p * 0.28 : 0.6 + p * 0.4;
+            el.classList.remove("is-bloomed");
+            el.style.transform = `perspective(${small ? 900 : 1400}px) translate3d(0, ${(q * dy).toFixed(1)}px, ${(q * dz).toFixed(1)}px) scale(${sc.toFixed(4)})`;
+            el.style.opacity = Math.min(1, p * 1.15).toFixed(3);
+            el.style.clipPath = `circle(${(p * 125).toFixed(1)}% at 50% ${el.style.getPropertyValue("--oy") || "50%"})`;
+          }
+          setVar(it.seed, "--sp", p.toFixed(3));
           if (rising && !it.burst && p > 0.28 && p < 0.999) {
             it.burst = true;
             const f = flow();

@@ -202,7 +202,11 @@
     const io = new IntersectionObserver(
       (entries) => {
         visible = entries[0].isIntersecting;
-        visible ? start() : stop();
+        if (visible) start();
+        else {
+          stop();
+          ctx.clearRect(0, 0, w, h); // hors écran : on repart d'une toile vierge (aucun résidu)
+        }
       },
       { threshold: 0.02 }
     );

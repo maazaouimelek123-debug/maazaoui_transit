@@ -13,7 +13,8 @@
   pointer-events: none;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transform-origin: left center;
-  transform: scaleX(var(--scroll-p, 0));
+  transform: scaleX(0);
+  will-change: transform;
   opacity: 0;
 }
 
@@ -32,19 +33,8 @@ html.fx .ohero {
 html.fx .hero > .container,
 html.fx .ohero > .container,
 html.fx .ohero-foot {
-  transform: translate3d(0, calc(var(--hp, 0) * -90px), 0) scale(calc(1 - var(--hp, 0) * 0.07));
-  opacity: calc(1 - var(--hp, 0) * 1.25);
   transform-origin: 50% 25%;
   will-change: transform, opacity;
-}
-
-html.fx .hero-canvas,
-html.fx .ohero-canvas {
-  opacity: calc(0.9 * (1 - var(--hp, 0)));
-}
-
-html.fx .hero-year {
-  opacity: calc(1 - var(--hp, 0));
 }
 
 html.fx .hero.is-passed .hero-canvas,
@@ -71,14 +61,6 @@ html.fx .curtain {
     radial-gradient(70vmax 50vmax at 85% 92%, var(--cur-a), transparent 70%),
     var(--bg);
   box-shadow: 0 -40px 100px -20px rgba(0, 0, 0, 0.8);
-}
-
-@supports (color: color-mix(in srgb, red, blue 50%)) {
-  html.fx .curtain {
-    --cur-a: color-mix(in srgb, var(--aurora-a), rgb(var(--tint-rgb, 63 217 203) / 0.32) calc(var(--tint-mix, 0) * 100%));
-    --cur-b: color-mix(in srgb, var(--aurora-b), rgb(var(--tint-rgb, 63 217 203) / 0.26) calc(var(--tint-mix, 0) * 100%));
-    --cur-c: color-mix(in srgb, var(--aurora-c), rgb(var(--tint-rgb, 63 217 203) / 0.22) calc(var(--tint-mix, 0) * 100%));
-  }
 }
 
 html.fx .curtain > :first-child {
@@ -252,15 +234,13 @@ html.fx [data-parallax] {
 }
 
 .depth-field::after {
-  /* Vignette : garde le centre lisible et creuse les bords avec la profondeur */
+  /* Vignette : garde le centre lisible et creuse les bords avec la profondeur (opacité seule : compositeur) */
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    120% 90% at 50% 40%,
-    transparent 35%,
-    rgba(var(--bg-rgb), calc(0.35 + var(--depth, 0) * 0.35)) 100%
-  );
+  background: radial-gradient(120% 90% at 50% 40%, transparent 35%, rgba(var(--bg-rgb), 0.7) 100%);
+  opacity: calc(0.5 + var(--depth, 0) * 0.5);
+  will-change: opacity;
 }
 
 html:not(.fx) .depth-field canvas {
@@ -277,11 +257,6 @@ html.fx body[data-page="customs"] .hero.is-passed {
   visibility: visible;
 }
 
-html.fx body[data-page="customs"] .hero > .container {
-  transform: translate3d(0, calc(var(--hp, 0) * -36px), 0) scale(calc(1 - var(--hp, 0) * 0.04));
-  opacity: calc(1 - var(--hp, 0));
-}
-
 html.fx body[data-page="customs"] .curtain {
   background: transparent;
   box-shadow: none;
@@ -294,36 +269,30 @@ html.fx body[data-page="customs"] .curtain > .marquee {
   backdrop-filter: blur(4px);
 }
 
-/* Teinte d'ambiance appliquée à l'aurore (variables posées sur <html>) */
-@supports (color: color-mix(in srgb, red, blue 50%)) {
-  html.fx .aurora span:nth-child(1) {
-    background: color-mix(in srgb, var(--aurora-a), rgb(var(--tint-rgb, 63 217 203) / 0.34) calc(var(--tint-mix, 0) * 100%));
-  }
+/* Voile de teinte : un seul élément fixe, piloté par son opacité (compositeur) */
+.tint-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(70% 60% at 50% 55%, rgb(var(--tint-rgb, 63 217 203) / 0.26), transparent 70%);
+  will-change: opacity;
+}
 
-  html.fx .aurora span:nth-child(2) {
-    background: color-mix(in srgb, var(--aurora-b), rgb(var(--tint-rgb, 63 217 203) / 0.28) calc(var(--tint-mix, 0) * 100%));
-  }
-
-  html.fx .aurora span:nth-child(3) {
-    background: color-mix(in srgb, var(--aurora-c), rgb(var(--tint-rgb, 63 217 203) / 0.24) calc(var(--tint-mix, 0) * 100%));
-  }
+html:not(.fx) .tint-veil {
+  display: none;
 }
 
 /* ------------------------------------------------- Éclosion depuis un point */
 html.fx [data-bloom] {
-  --bp: 0;
-  transform: perspective(1400px) translate3d(0, calc((1 - var(--bp)) * 48px), calc((1 - var(--bp)) * -720px))
-    scale(calc(0.6 + var(--bp) * 0.4));
-  opacity: calc(var(--bp) * 1.15);
-  clip-path: circle(calc(var(--bp) * 125%) at 50% var(--oy, 50%));
+  opacity: 0;
   transform-origin: 50% var(--oy, 50%);
   will-change: transform, opacity, clip-path;
 }
 
 html.fx [data-bloom].is-bloomed {
-  transform: none;
   opacity: 1;
-  clip-path: none;
   will-change: auto;
 }
 
@@ -331,13 +300,6 @@ html.fx [data-bloom].is-bloomed {
 html.fx [data-bloom] [data-reveal],
 html.fx [data-bloom] [data-reveal-stagger] > * {
   transition-delay: 0s;
-}
-
-@media (max-width: 760px) {
-  html.fx [data-bloom] {
-    transform: perspective(900px) translate3d(0, calc((1 - var(--bp)) * 28px), calc((1 - var(--bp)) * -320px))
-      scale(calc(0.72 + var(--bp) * 0.28));
-  }
 }
 
 /* Point jaune : graine de chaque bloc */
@@ -381,6 +343,7 @@ html:not(.fx) .seed {
   z-index: 95;
   display: none;
   flex-direction: column;
+  align-items: flex-start;
   gap: 18px;
   padding-left: 18px;
   border-left: 2px dotted rgba(var(--accent-rgb), 0.45);
@@ -393,10 +356,12 @@ html:not(.fx) .seed {
   left: -2px;
   top: 0;
   width: 2px;
-  height: calc(var(--scroll-p, 0) * 100%);
+  height: 100%;
   background: var(--accent);
   box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
-  transition: height 0.2s linear;
+  transform-origin: top;
+  transform: scaleY(var(--scroll-p, 0));
+  will-change: transform;
 }
 
 @media (min-width: 1180px) {
@@ -406,10 +371,11 @@ html:not(.fx) .seed {
 }
 
 .rail-node {
+  /* La zone cliquable se limite au point : le libellé est hors flux, à droite */
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  width: 14px;
   height: 14px;
   color: var(--text-3);
   text-decoration: none;
@@ -427,27 +393,33 @@ html:not(.fx) .seed {
 }
 
 .rail-node span {
+  position: absolute;
+  left: 100%;
+  top: 50%;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 4px 8px;
   border-radius: 6px;
-  background: rgba(var(--bg-rgb), 0.86);
+  background: rgba(var(--bg-rgb), 0.9);
   border: 1px solid var(--line);
+  visibility: hidden;
   opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.3s, transform 0.4s var(--ease-out), color 0.3s;
+  transform: translate(2px, -50%);
+  transition: opacity 0.3s, transform 0.4s var(--ease-out), color 0.3s, visibility 0s linear 0.3s;
   white-space: nowrap;
   pointer-events: none;
 }
 
-/* Les libellés n'apparaissent qu'à la demande (survol, clavier) : ils ne recouvrent jamais le contenu. */
+/* Les libellés n'apparaissent qu'à la demande (survol du rail, clavier) : ils ne recouvrent jamais le contenu. */
 .rail:hover .rail-node span,
 .rail:focus-within .rail-node span,
 .rail-node:focus-visible span {
+  visibility: visible;
   opacity: 1;
-  transform: none;
+  transform: translate(10px, -50%);
+  transition: opacity 0.3s, transform 0.4s var(--ease-out), color 0.3s, visibility 0s;
 }
 
 .rail-node.is-active {
