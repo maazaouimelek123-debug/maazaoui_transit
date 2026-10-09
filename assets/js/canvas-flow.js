@@ -89,24 +89,62 @@
 
       const boost = 1 + depth * 1.8;
       const glow = o.alpha * (1 + depth * 0.6);
+      // Avec la profondeur, le courant est de plus en plus radial (on avance dans le champ) :
+      // les particules proches du centre dérivent lentement, celles des bords filent.
+      const k = depth * 0.55;
+      const cx = w * 0.5;
+      const cy = h * 0.45;
+      const span = Math.max(w, h);
       for (const p of particles) {
         const a = angle(p.x, p.y, t);
-        const nx = p.x + Math.cos(a) * p.speed * boost;
-        const ny = p.y + Math.sin(a) * p.speed * boost;
-        p.life -= 1;
-        if (p.life < 0 || nx < -2 || nx > w + 2 || ny < -2 || ny > h + 2) {
-          spawn(p);
-          continue;
+        let vx = Math.cos(a);
+        let vy = Math.sin(a);
+        let rate = p.speed * boost;
+        if (k > 0) {
+          const rx = p.x - cx;
+          const ry = p.y - cy;
+          const rl = Math.hypot(rx, ry) || 1;
+          vx = vx * (1 - k) + (rx / rl) * k;
+          vy = vy * (1 - k) + (ry / rl) * k;
+          rate *= 1 + depth * (rl / span) * 1.6;
         }
+        // Sous-pas quand la vitesse augmente : les traînées restent lisses en profondeur.
+        const sub = rate > 2.2 ? 2 : 1;
         const fadeIn = Math.min(1, (340 - p.life) / 40);
         ctx.strokeStyle = `rgba(${o.color},${Math.min(1, glow * fadeIn)})`;
         ctx.lineWidth = p.w;
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
-        ctx.lineTo(nx, ny);
+        let dead = false;
+        for (let s = 0; s < sub; s++) {
+          if (s > 0) {
+            const a2 = angle(p.x, p.y, t);
+            vx = Math.cos(a2);
+            vy = Math.sin(a2);
+            if (k > 0) {
+              const rx2 = p.x - cx;
+              const ry2 = p.y - cy;
+              const rl2 = Math.hypot(rx2, ry2) || 1;
+              vx = vx * (1 - k) + (rx2 / rl2) * k;
+              vy = vy * (1 - k) + (ry2 / rl2) * k;
+            }
+          }
+          const nx = p.x + (vx * rate) / sub;
+          const ny = p.y + (vy * rate) / sub;
+          if (nx < -2 || nx > w + 2 || ny < -2 || ny > h + 2) {
+            dead = true;
+            break;
+          }
+          ctx.lineTo(nx, ny);
+          p.x = nx;
+          p.y = ny;
+        }
         ctx.stroke();
-        p.x = nx;
-        p.y = ny;
+        p.life -= 1;
+        if (dead || p.life < 0) {
+          spawn(p);
+          continue;
+        }
       }
       // Salves : particules brillantes à courte vie, sans réapparition.
       if (extras.length) {

@@ -130,8 +130,8 @@
       hp = Math.round(hp * 1000) / 1000;
       if (hp === last) return null;
       last = hp;
-      const shift = sticky ? -90 : -36;
-      const shrink = sticky ? 0.07 : 0.04;
+      const shift = sticky ? -90 : -64;
+      const shrink = sticky ? 0.07 : 0.1;
       const fade = sticky ? 1.25 : 1;
       return () => {
         if (container) {
@@ -450,6 +450,65 @@
           }
           if (p < 0.04) it.burst = false;
         });
+      };
+    });
+  })();
+
+  /* Chemin pointillé : relie les points d'éclosion à travers la page et s'illumine au passage */
+  (function journey() {
+    const svg = $(".journey");
+    const curtain = $(".curtain");
+    if (!svg || !curtain) return;
+    const dots = svg.querySelector(".journey-dots");
+    const done = svg.querySelector(".journey-done");
+    if (!dots || !done) return;
+    let seeds = [];
+    let yStart = 0;
+    let yEnd = 1;
+    let length = 0;
+    let last = "";
+    const build = () => {
+      seeds = $$(".seed", curtain);
+      if (seeds.length < 2) return;
+      const base = curtain.getBoundingClientRect().top + window.scrollY;
+      const pts = seeds.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 + window.scrollY - base };
+      });
+      pts.sort((p1, p2) => p1.y - p2.y);
+      let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1];
+        const b = pts[i];
+        const dy = (b.y - a.y) / 2;
+        // Tangentes verticales : les blocs se relient par de douces courbes en S.
+        d += ` C ${a.x.toFixed(1)} ${(a.y + dy).toFixed(1)}, ${b.x.toFixed(1)} ${(b.y - dy).toFixed(1)}, ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
+      }
+      dots.setAttribute("d", d);
+      done.setAttribute("d", d);
+      length = done.getTotalLength();
+      done.style.clipPath = "inset(0 0 100% 0)";
+      yStart = pts[0].y + base;
+      yEnd = pts[pts.length - 1].y + base;
+      svg.style.height = `${curtain.offsetHeight}px`;
+      last = "";
+      dirty = true;
+    };
+    // Après le placement des graines (même événements, un peu plus tard).
+    const later = () => setTimeout(build, 80);
+    later();
+    window.addEventListener("resize", later);
+    window.addEventListener("load", later);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
+    document.addEventListener("mz:lang", () => setTimeout(build, 160));
+    register((y) => {
+      if (!length) return null;
+      const p = clamp((y + vh * 0.5 - yStart) / Math.max(1, yEnd - yStart), 0, 1);
+      const v = `inset(0 0 ${((1 - p) * 100).toFixed(2)}% 0)`; // % de la boîte du tracé
+      if (v === last) return null;
+      last = v;
+      return () => {
+        done.style.clipPath = v; // un seul élément SVG, zone de repeinture étroite
       };
     });
   })();
