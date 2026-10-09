@@ -43,11 +43,13 @@ Toutes les données modifiables sont dans **`assets/js/config.js`** :
 
 ## Mise en ligne (GitHub Pages)
 
-1. Fusionner la branche dans `main`.
-2. Dans le dépôt : **Settings → Pages → Build and deployment → Source : GitHub Actions**.
-3. Le workflow `.github/workflows/pages.yml` publie automatiquement à chaque push sur `main`.
+Le site est publié sur <https://maazaouimelek123-debug.github.io/maazaoui_transit/>.
 
-Le site est alors disponible sur `https://<compte>.github.io/maazaoui_transit/`. Un nom de domaine personnalisé peut être ajouté dans les mêmes réglages.
+1. Dans le dépôt : **Settings → Pages → Build and deployment → Source : GitHub Actions** (déjà fait).
+2. Le workflow `.github/workflows/pages.yml` publie automatiquement à chaque push sur la branche par défaut du dépôt (actuellement `claude/wizardly-gates-91bh18`) et sur `main` ; il peut aussi être lancé à la main (**Actions → Deploy to GitHub Pages → Run workflow**).
+3. L'environnement `github-pages` n'autorise les déploiements que depuis la branche par défaut : pour publier depuis `main`, la définir comme branche par défaut (**Settings → Branches**).
+
+Modifier `assets/js/config.js` directement sur la branche par défaut (horaires, fermetures, contacts) suffit donc à mettre le site à jour. Un nom de domaine personnalisé peut être ajouté dans les réglages Pages.
 
 ## Développement local
 

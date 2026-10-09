@@ -1,10 +1,13 @@
-# Déploiement automatique sur GitHub Pages à chaque push sur « main ».
+# Déploiement automatique sur GitHub Pages à chaque push sur la branche de travail
+# (branche par défaut du dépôt) ou sur « main », et à la demande (Run workflow).
+# L'environnement « github-pages » n'autorise que la branche par défaut : si « main »
+# devient la branche par défaut (Settings → Branches), les pushs sur « main » déploieront.
 # Le workflow tente d'activer Pages lui-même (enablement) ; à défaut : Settings → Pages → Source : « GitHub Actions ».
 name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [claude/wizardly-gates-91bh18, main]
   workflow_dispatch:
 
 permissions:
