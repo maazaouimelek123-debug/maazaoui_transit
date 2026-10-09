@@ -211,9 +211,13 @@
         section.style.height = `${sticky.offsetHeight + extra}px`;
       };
       measure();
+      let tm = 0;
       window.addEventListener("resize", () => {
-        measure();
-        dirty = true;
+        clearTimeout(tm);
+        tm = setTimeout(() => {
+          measure();
+          dirty = true;
+        }, 60);
       });
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); dirty = true; });
       register(() => {
@@ -369,7 +373,12 @@
       dirty = true;
     };
     place();
-    window.addEventListener("resize", place);
+    let ptm = 0;
+    window.addEventListener("resize", () => {
+      // Une seule passe de placement à la fin d'un redimensionnement, pas une par événement.
+      clearTimeout(ptm);
+      ptm = setTimeout(place, 60);
+    });
     window.addEventListener("load", place);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
     document.addEventListener("mz:lang", () => setTimeout(place, 50));
@@ -460,55 +469,124 @@
     const curtain = $(".curtain");
     if (!svg || !curtain) return;
     const dots = svg.querySelector(".journey-dots");
-    const done = svg.querySelector(".journey-done");
-    if (!dots || !done) return;
-    let seeds = [];
-    let yStart = 0;
-    let yEnd = 1;
-    let length = 0;
-    let last = "";
+    if (!dots) return;
+    const NS = "http://www.w3.org/2000/svg";
+    // La partie allumée est découpée en un tracé par segment (graine → graine). Seul le
+    // segment en cours est rogné à chaque image : la zone repeinte reste bornée à la hauteur
+    // d'un segment au lieu de tout le chemin (sur l'accueil : 3 300 px de haut).
+    // Le rognage est un <clipPath> SVG (rectangle en pixels) : aucune ambiguïté de boîte de
+    // référence, même pour un segment vertical dont la boîte englobante a une largeur nulle.
+    let clipRect = svg.querySelector(".journey-clip rect");
+    if (!clipRect) {
+      const defs = document.createElementNS(NS, "defs");
+      const cp = document.createElementNS(NS, "clipPath");
+      cp.setAttribute("id", "journey-clip");
+      cp.setAttribute("class", "journey-clip");
+      clipRect = document.createElementNS(NS, "rect");
+      clipRect.setAttribute("x", "0");
+      clipRect.setAttribute("y", "0");
+      clipRect.setAttribute("width", "100%");
+      clipRect.setAttribute("height", "0");
+      cp.appendChild(clipRect);
+      defs.appendChild(cp);
+      svg.insertBefore(defs, svg.firstChild);
+    }
+    const HIDDEN = 0;
+    const ACTIVE = 1;
+    const DONE = 2;
+    let segs = []; // { el, y0, y1, state } — y en coordonnées du document
+    let base = 0; // haut du rideau dans le document (= origine du SVG)
+    let lastH = -1;
+    let tm = 0;
+    const apply = (seg, state) => {
+      seg.state = state;
+      seg.el.style.visibility = state === HIDDEN ? "hidden" : "visible";
+      seg.el.style.clipPath = state === ACTIVE ? "url(#journey-clip)" : "none";
+    };
     const build = () => {
-      seeds = $$(".seed", curtain);
+      const seeds = $$(".seed", curtain);
       if (seeds.length < 2) return;
-      const base = curtain.getBoundingClientRect().top + window.scrollY;
+      base = curtain.getBoundingClientRect().top + window.scrollY;
       const pts = seeds.map((el) => {
         const r = el.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 + window.scrollY - base };
       });
       pts.sort((p1, p2) => p1.y - p2.y);
-      let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+      const f = (n) => n.toFixed(1);
+      const cubic = (p0, p1, p2, p3) => `M ${f(p0.x)} ${f(p0.y)} C ${f(p1.x)} ${f(p1.y)}, ${f(p2.x)} ${f(p2.y)}, ${f(p3.x)} ${f(p3.y)}`;
+      const mid = (p, q) => ({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 });
+      // Un segment plus haut qu'environ un écran est coupé en deux (de Casteljau, t = ½) :
+      // la zone repeinte à chaque image reste bornée, même entre deux blocs éloignés.
+      const split = (p0, p1, p2, p3, out, depthLeft) => {
+        if (depthLeft > 0 && p3.y - p0.y > vh * 1.1) {
+          const p01 = mid(p0, p1);
+          const p12 = mid(p1, p2);
+          const p23 = mid(p2, p3);
+          const p012 = mid(p01, p12);
+          const p123 = mid(p12, p23);
+          const m = mid(p012, p123);
+          split(p0, p01, p012, m, out, depthLeft - 1);
+          split(m, p123, p23, p3, out, depthLeft - 1);
+        } else {
+          out.push({ d: cubic(p0, p1, p2, p3), y0: p0.y + base, y1: p3.y + base });
+        }
+      };
+      let d = `M ${f(pts[0].x)} ${f(pts[0].y)}`;
+      const parts = [];
       for (let i = 1; i < pts.length; i++) {
         const a = pts[i - 1];
         const b = pts[i];
         const dy = (b.y - a.y) / 2;
         // Tangentes verticales : les blocs se relient par de douces courbes en S.
-        d += ` C ${a.x.toFixed(1)} ${(a.y + dy).toFixed(1)}, ${b.x.toFixed(1)} ${(b.y - dy).toFixed(1)}, ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
+        const c1 = { x: a.x, y: a.y + dy };
+        const c2 = { x: b.x, y: b.y - dy };
+        d += ` C ${f(c1.x)} ${f(c1.y)}, ${f(c2.x)} ${f(c2.y)}, ${f(b.x)} ${f(b.y)}`;
+        split(a, c1, c2, b, parts, 3);
       }
       dots.setAttribute("d", d);
-      done.setAttribute("d", d);
-      length = done.getTotalLength();
-      done.style.clipPath = "inset(0 0 100% 0)";
-      yStart = pts[0].y + base;
-      yEnd = pts[pts.length - 1].y + base;
+      $$(".journey-done", svg).forEach((el) => el.remove());
+      let cum = 0; // longueur cumulée : chaque morceau reprend la phase des pointillés (période 11)
+      segs = parts.map((pt) => {
+        const el = document.createElementNS(NS, "path");
+        el.setAttribute("class", "journey-done");
+        el.setAttribute("d", pt.d);
+        el.setAttribute("stroke-dashoffset", f(-(cum % 11)));
+        svg.appendChild(el);
+        cum += el.getTotalLength();
+        const seg = { el, y0: pt.y0, y1: pt.y1, state: -1 };
+        apply(seg, HIDDEN);
+        return seg;
+      });
       svg.style.height = `${curtain.offsetHeight}px`;
-      last = "";
+      lastH = -1;
       dirty = true;
     };
-    // Après le placement des graines (même événements, un peu plus tard).
-    const later = () => setTimeout(build, 80);
+    // Après le placement des graines (mêmes événements, un peu plus tard) ; un seul build par rafale.
+    const later = (ms) => {
+      clearTimeout(tm);
+      tm = setTimeout(build, ms || 80);
+    };
     later();
-    window.addEventListener("resize", later);
-    window.addEventListener("load", later);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
-    document.addEventListener("mz:lang", () => setTimeout(build, 160));
+    window.addEventListener("resize", () => later());
+    window.addEventListener("load", () => later());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => later());
+    document.addEventListener("mz:lang", () => later(160));
     register((y) => {
-      if (!length) return null;
-      const p = clamp((y + vh * 0.5 - yStart) / Math.max(1, yEnd - yStart), 0, 1);
-      const v = `inset(0 0 ${((1 - p) * 100).toFixed(2)}% 0)`; // % de la boîte du tracé
-      if (v === last) return null;
-      last = v;
+      if (!segs.length) return null;
+      const edge = y + vh * 0.5; // le chemin s'allume jusqu'au milieu de l'écran
+      const changes = [];
+      for (const seg of segs) {
+        const state = edge >= seg.y1 ? DONE : edge <= seg.y0 ? HIDDEN : ACTIVE;
+        if (state !== seg.state) changes.push([seg, state]);
+      }
+      // Hauteur du rectangle de rognage (pixels SVG = pixels CSS), par pas de 4 px.
+      const hClip = Math.round(clamp(edge - base, 0, 1e7) / 4) * 4;
+      if (!changes.length && hClip === lastH) return null;
+      const writeH = hClip !== lastH;
+      lastH = hClip;
       return () => {
-        done.style.clipPath = v; // un seul élément SVG, zone de repeinture étroite
+        for (const [seg, state] of changes) apply(seg, state);
+        if (writeH) clipRect.setAttribute("height", String(hClip));
       };
     });
   })();

@@ -703,7 +703,7 @@
       if (MZ.canvasOcean) MZ.canvasOcean.mount(el, { compact: true, baseline: 0.58, stars: 40 });
     }
     for (const el of $$("[data-canvas='flow-compact']")) {
-      if (MZ.canvasFlow) MZ.canvasFlow.mount(el, { color: "216, 181, 102", density: 6000, maxParticles: 320, alpha: 0.6 });
+      if (MZ.canvasFlow) MZ.canvasFlow.mount(el, { color: "216, 181, 102", density: 6000, minParticles: 120, maxParticles: 320, alpha: 0.6 });
     }
     const waves = $("[data-canvas='waves-only']");
     if (waves && MZ.canvasOcean) MZ.canvasOcean.mount(waves, { plane: false, stars: 0, baseline: 0.5, waves: 4 });

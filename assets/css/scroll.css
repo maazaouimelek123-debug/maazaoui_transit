@@ -312,13 +312,15 @@ html:not(.fx) .journey {
   stroke-dasharray: 2 9;
 }
 
-/* Partie parcourue : les mêmes pointillés, allumés (clip-path piloté par le défilement) */
+/* Partie parcourue : les mêmes pointillés, allumés. Un tracé par segment, créé par le
+   script ; le segment en cours est rogné par le <clipPath> #journey-clip (rectangle piloté
+   par le défilement), les segments passés sont entiers, les suivants masqués. */
 .journey-done {
   stroke: var(--accent-2);
   stroke-width: 1.6;
   stroke-dasharray: 2 9;
   opacity: 0.7;
-  clip-path: inset(0 0 100% 0);
+  visibility: hidden;
 }
 
 @media (max-width: 760px) {
@@ -326,11 +328,8 @@ html:not(.fx) .journey {
     stroke: rgba(var(--accent-rgb), 0.2);
     stroke-width: 1.4;
   }
-
-  .journey-done {
-    stroke-width: 1.4;
-    opacity: 0.5;
-  }
+  /* .journey-done garde 1,6 px et 0,7 : sur mobile le champ est plus dense, le contraste
+     allumé/éteint doit rester lisible. */
 }
 
 /* ------------------------------------------------- Éclosion depuis un point */
@@ -359,11 +358,24 @@ html.fx [data-bloom] [data-reveal-stagger] > * {
   margin: -5px 0 0 -5px;
   border-radius: 50%;
   background: var(--accent-2);
-  box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.5), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+  box-shadow: 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
   pointer-events: none;
   z-index: 3;
   opacity: calc(1 - max(0, var(--sp, 0) - 0.3) / 0.5);
   transform: scale(calc(1 + max(0, var(--sp, 0) - 0.2) * 11));
+}
+
+/* Pulsation : un disque qui s'élargit et s'efface, animé en transform/opacity (compositeur)
+   plutôt qu'en box-shadow (recalcul de style + repeinture à chaque image, même au repos). */
+.seed::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.4);
+  opacity: 0;
+  transform: scale(1);
+  will-change: transform, opacity;
   animation: seed-pulse 2.4s ease-out infinite;
 }
 
@@ -371,19 +383,22 @@ html:not(.fx) .seed {
   display: none;
 }
 
-.seed.is-done {
-  animation: none; /* bloc éclos : plus rien à signaler, la page peut être au repos */
+.seed.is-done::after {
+  display: none; /* bloc éclos : plus rien à signaler, la page peut être au repos */
 }
 
 @keyframes seed-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.55), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+    transform: scale(1);
+    opacity: 0.6;
   }
   70% {
-    box-shadow: 0 0 0 16px rgba(var(--accent-rgb), 0), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+    transform: scale(3.2);
+    opacity: 0;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0), 0 0 22px 4px rgba(var(--accent-rgb), 0.55);
+    transform: scale(3.2);
+    opacity: 0;
   }
 }
 

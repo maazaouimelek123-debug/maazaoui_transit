@@ -68,6 +68,17 @@ await run([
       assert(misc.seeds === misc.blooms && misc.bloomed >= 6, "blooms/seeds inconsistent");
       assert(misc.railActive === "Portail", `rail active label: ${misc.railActive}`);
       assert(/scaleY\(0\.[1-9]/.test(misc.railFill || ""), "rail fill never filled");
+      // Chemin pointillé : un tracé par segment, parcourus entiers / en cours rogné / à venir masqués
+      const journey = await page.evaluate(() => {
+        const svg = document.querySelector(".journey");
+        const segs = [...svg.querySelectorAll(".journey-done")].map((el) => (el.style.visibility === "hidden" ? "H" : el.style.clipPath.startsWith("url(") ? "A" : "D")).join("");
+        const rect = svg.querySelector("#journey-clip rect");
+        const base = svg.getBoundingClientRect().top + window.scrollY;
+        return { segs, rectH: Number(rect && rect.getAttribute("height")), expected: window.scrollY + window.innerHeight / 2 - base, seeds: document.querySelectorAll(".seed").length };
+      });
+      console.log("journey:", journey);
+      assert(journey.segs.length >= journey.seeds - 1 && /^D+A?H+$/.test(journey.segs), "journey segments not in done/active/hidden order: " + journey.segs);
+      assert(Math.abs(journey.rectH - journey.expected) <= 4, `journey clip height ${journey.rectH} vs expected ${journey.expected}`);
       // Retour en haut : hero visible
       await scrollTo(page, 0);
       await page.waitForTimeout(500);

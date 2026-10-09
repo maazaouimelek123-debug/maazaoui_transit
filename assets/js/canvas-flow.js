@@ -18,13 +18,14 @@
     const o = Object.assign(
       {
         color: "216, 181, 102",
-        density: 11000, // px² par particule
+        density: 8000, // px² par particule (plancher 160 en desktop, 72 sous 760 px)
         speed: 1.1,
         fade: 0.045,
         lineWidth: 0.9,
         alpha: 0.5,
         scale: 0.0024,
         maxParticles: 900,
+        minParticles: 0, // 0 = plancher selon la largeur (160 desktop, 72 sous 760 px)
         burstColor: "243, 217, 139",
       },
       opts || {}
@@ -38,6 +39,7 @@
     let particles = [];
     let extras = []; // salves d'éclosion (particules éphémères)
     let depth = 0; // 0 = surface, 1 = plongée maximale (pilote la vitesse et l'intensité)
+    let targetDepth = 0; // la profondeur demandée ; depth la rejoint en douceur (traînées courbes, pas cassées)
     let raf = 0;
     let t = Math.random() * 1000;
     let running = false;
@@ -45,8 +47,18 @@
 
     function spawn(p) {
       p = p || {};
-      p.x = Math.random() * w;
-      p.y = Math.random() * h;
+      if (depth > 0 && Math.random() < depth * 0.7) {
+        // En profondeur le courant est radial sortant et plus lent au centre : sans
+        // compensation le centre se viderait. Une part des renaissances se fait donc près du
+        // centre (disque de 30 % de la plus grande dimension, légèrement plus dense au milieu).
+        const r = Math.pow(Math.random(), 0.8) * Math.max(w, h) * 0.3;
+        const a = Math.random() * Math.PI * 2;
+        p.x = Math.min(w, Math.max(0, w * 0.5 + Math.cos(a) * r));
+        p.y = Math.min(h, Math.max(0, h * 0.45 + Math.sin(a) * r));
+      } else {
+        p.x = Math.random() * w;
+        p.y = Math.random() * h;
+      }
       p.life = 80 + Math.random() * 260;
       p.speed = o.speed * (0.6 + Math.random() * 0.8);
       p.w = o.lineWidth * (0.5 + Math.random());
@@ -61,7 +73,9 @@
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const n = Math.min(o.maxParticles, Math.max(120, Math.round((w * h) / o.density)));
+      // Plancher plus bas sur mobile : à nombre égal, un petit écran serait bien plus couvert.
+      const floor = o.minParticles || (w < 760 ? 72 : 160);
+      const n = Math.min(o.maxParticles, Math.max(floor, Math.round((w * h) / o.density)));
       particles = Array.from({ length: n }, () => spawn());
       ctx.clearRect(0, 0, w, h);
       if (reduced) drawStatic();
@@ -87,6 +101,12 @@
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = "source-over";
 
+      // La profondeur rejoint sa cible en ~0,5 s à 60 i/s : un saut de page (ancre, touche Fin)
+      // incurve les traînées au lieu de les casser en escalier.
+      if (depth !== targetDepth) {
+        depth += (targetDepth - depth) * 0.08;
+        if (Math.abs(targetDepth - depth) < 0.002) depth = targetDepth;
+      }
       const boost = 1 + depth * 1.8;
       const glow = o.alpha * (1 + depth * 0.6);
       // Avec la profondeur, le courant est de plus en plus radial (on avance dans le champ) :
@@ -106,7 +126,7 @@
           const rl = Math.hypot(rx, ry) || 1;
           vx = vx * (1 - k) + (rx / rl) * k;
           vy = vy * (1 - k) + (ry / rl) * k;
-          rate *= 1 + depth * (rl / span) * 1.6;
+          rate *= 1 + depth * (rl / span) * 1.2;
         }
         // Sous-pas quand la vitesse augmente : les traînées restent lisses en profondeur.
         const sub = rate > 2.2 ? 2 : 1;
@@ -151,11 +171,14 @@
         ctx.lineWidth = 1.1;
         for (let i = extras.length - 1; i >= 0; i--) {
           const p = extras[i];
-          // Radial au départ, puis emporté par le courant du champ.
+          // Radial au départ, puis emporté par le courant du champ. On interpole les
+          // vecteurs (et non les angles) : la particule s'incline doucement, sans vrille.
           const k = p.life / p.max;
-          const a = p.spin * k + angle(p.x, p.y, t) * (1 - k);
-          const nx = p.x + Math.cos(a) * p.speed * (0.4 + k);
-          const ny = p.y + Math.sin(a) * p.speed * (0.4 + k);
+          const a = angle(p.x, p.y, t);
+          const vx = Math.cos(p.spin) * k + Math.cos(a) * (1 - k);
+          const vy = Math.sin(p.spin) * k + Math.sin(a) * (1 - k);
+          const nx = p.x + vx * p.speed * (0.4 + k);
+          const ny = p.y + vy * p.speed * (0.4 + k);
           p.life -= 1;
           if (p.life < 0) {
             extras.splice(i, 1);
@@ -176,7 +199,8 @@
 
     /** Règle la profondeur de plongée (0–1). */
     function setDepth(d) {
-      depth = Math.min(1, Math.max(0, Number(d) || 0));
+      targetDepth = Math.min(1, Math.max(0, Number(d) || 0));
+      if (!running) depth = targetDepth; // à l'arrêt (hors écran), pas de transition à jouer
     }
 
     /** Déclenche une salve de particules au point (x, y) en pixels CSS du canvas. */
