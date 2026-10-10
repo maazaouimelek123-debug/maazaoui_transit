@@ -22,7 +22,10 @@
   <link rel="manifest" href="manifest.webmanifest">
 
   <!-- Arrivée par le portail : le voile couvre la page avant le premier rendu (évite tout flash). -->
-  <script>(function(){try{if(sessionStorage.getItem("mz:veil"))document.documentElement.classList.add("veil-in")}catch(e){}})();</script>
+  <meta name="mz-build" content="dev">
+  <script>(function(){try{if(sessionStorage.getItem("mz:veil"))document.documentElement.classList.add("veil-in")}catch(e){}
+  /* Journal d'erreurs lisible par diag.html (diagnostic à distance). */
+  var E=window.__mzErrors=[];window.addEventListener("error",function(e){E.push({m:String(e.message||e),s:String(e.filename||"").split("/").pop(),l:e.lineno||0})});window.addEventListener("unhandledrejection",function(e){E.push({m:"promise: "+String(e.reason&&e.reason.message||e.reason),s:"",l:0})})})();</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

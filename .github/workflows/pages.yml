@@ -31,6 +31,17 @@ jobs:
         with:
           # Active GitHub Pages (source « GitHub Actions ») au premier déploiement si ce n'est pas déjà fait.
           enablement: true
+      - name: Empreinte de version (anti-cache)
+        # Les URL des feuilles de style et scripts reçoivent ?v=<commit> et la balise
+        # <meta name="mz-build"> reçoit le commit : chaque déploiement force le navigateur
+        # à recharger les assets (GitHub Pages les met en cache 10 min) et diag.html
+        # peut afficher la version réellement servie.
+        run: |
+          v="${GITHUB_SHA::8}"
+          for f in *.html; do
+            sed -i -E "s#(assets/(css|js)/[A-Za-z0-9_.-]+\.(css|js))\"#\1?v=${v}\"#g; s#<meta name=\"mz-build\" content=\"dev\">#<meta name=\"mz-build\" content=\"${v}\">#" "$f"
+          done
+          grep -c "?v=${v}" index.html transport.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

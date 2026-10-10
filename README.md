@@ -51,6 +51,12 @@ Le site est publié sur <https://maazaouimelek123-debug.github.io/maazaoui_trans
 
 Modifier `assets/js/config.js` directement sur la branche par défaut (horaires, fermetures, contacts) suffit donc à mettre le site à jour. Un nom de domaine personnalisé peut être ajouté dans les réglages Pages.
 
+## Diagnostic à distance
+
+Si l'effet de plongée ne s'affiche pas chez un visiteur, lui faire ouvrir <https://maazaouimelek123-debug.github.io/maazaoui_transit/?diag=1> : un panneau analyse son navigateur (version servie, réglage « réduire les animations », effets actifs, éclosion des blocs au défilement, cache périmé, erreurs de script) et propose de copier le rapport. Le panneau est chargé uniquement avec `?diag=1` (`assets/js/diag.js`) et n'envoie rien.
+
+À chaque déploiement, le workflow ajoute `?v=<commit>` aux feuilles de style et scripts et inscrit le commit dans `<meta name="mz-build">` : les navigateurs rechargent toujours la version du jour.
+
 ## Développement local
 
 Le site fonctionne en ouvrant directement `index.html`, mais un petit serveur est recommandé :

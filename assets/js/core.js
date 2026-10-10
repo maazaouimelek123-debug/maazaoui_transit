@@ -756,6 +756,12 @@
     initAvailability();
     initPortalPause();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(reanchor, 60));
+    // Diagnostic à distance : index.html?diag=1 charge un panneau qui rapporte ce que ce navigateur voit.
+    if (/[?&]diag=1(&|$)/.test(location.search)) {
+      const s = document.createElement("script");
+      s.src = "assets/js/diag.js?t=" + Date.now();
+      document.body.appendChild(s);
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
