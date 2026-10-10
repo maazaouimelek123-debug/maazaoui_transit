@@ -32,7 +32,8 @@
     );
 
     const ctx = canvas.getContext("2d", { alpha: true });
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Réglage système, sauf choix explicite du visiteur (MZ.motion, posé par core.js).
+    const reduced = window.MZ && MZ.motion ? !MZ.motion.enabled : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let w = 0;
     let h = 0;
     let dpr = 1;
@@ -256,30 +257,39 @@
       cancelAnimationFrame(raf);
     }
 
-    const ro = new ResizeObserver(() => {
-      resize();
-    });
-    ro.observe(canvas);
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        visible = entries[0].isIntersecting;
-        if (visible) start();
-        else {
-          stop();
-          ctx.clearRect(0, 0, w, h); // hors écran : on repart d'une toile vierge (aucun résidu)
-        }
-      },
-      { threshold: 0.02 }
-    );
-    io.observe(canvas);
+    // Observateurs gardés : sans eux (navigateurs anciens), on retombe sur l'événement resize
+    // et on considère le canvas toujours visible.
+    let ro = null;
+    let io = null;
+    if ("ResizeObserver" in window) {
+      ro = new ResizeObserver(() => {
+        resize();
+      });
+      ro.observe(canvas);
+    } else {
+      window.addEventListener("resize", resize);
+    }
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          visible = entries[0].isIntersecting;
+          if (visible) start();
+          else {
+            stop();
+            ctx.clearRect(0, 0, w, h); // hors écran : on repart d'une toile vierge (aucun résidu)
+          }
+        },
+        { threshold: 0.02 }
+      );
+      io.observe(canvas);
+    }
 
     document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
 
     resize();
     start();
 
-    const handle = { start, stop, setDepth, burst, destroy: () => { stop(); ro.disconnect(); io.disconnect(); } };
+    const handle = { start, stop, setDepth, burst, destroy: () => { stop(); if (ro) ro.disconnect(); if (io) io.disconnect(); } };
     canvas.__flow = handle;
     return handle;
   }

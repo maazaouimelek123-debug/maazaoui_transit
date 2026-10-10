@@ -205,6 +205,10 @@ ol {
 /* ------------------------------------------------------------- Atmosphère */
 .aurora {
   position: fixed;
+  top: -20vmax;
+  right: -20vmax;
+  bottom: -20vmax;
+  left: -20vmax;
   inset: -20vmax;
   z-index: -2;
   pointer-events: none;
@@ -265,6 +269,10 @@ ol {
 /* Grain cinématographique (SVG turbulence, tuilé) */
 .grain {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 998;
   pointer-events: none;
@@ -277,15 +285,21 @@ ol {
 /* --------------------------------------------------------------- Mise en page */
 .container {
   width: min(var(--container), 100% - 2 * var(--gutter));
+  margin-left: auto;
+  margin-right: auto;
   margin-inline: auto;
 }
 
 .section {
   position: relative;
+  padding-top: var(--section-y);
+  padding-bottom: var(--section-y);
   padding-block: var(--section-y);
 }
 
 .section--tight {
+  padding-top: calc(var(--section-y) * 0.6);
+  padding-bottom: calc(var(--section-y) * 0.6);
   padding-block: calc(var(--section-y) * 0.6);
 }
 
@@ -301,6 +315,8 @@ ol {
 }
 
 .section-head--center {
+  margin-left: auto;
+  margin-right: auto;
   margin-inline: auto;
   text-align: center;
 }
@@ -500,13 +516,15 @@ ol {
 
 /* ------------------------------------------------------ Mouvement réduit */
 @media (prefers-reduced-motion: reduce) {
-  html {
+  html:not(.fx-forced) {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
+  /* Le visiteur peut activer explicitement les effets (bandeau) : html.fx-forced lève la coupure. */
+  html:not(.fx-forced),
+  html:not(.fx-forced) *,
+  html:not(.fx-forced) *::before,
+  html:not(.fx-forced) *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;

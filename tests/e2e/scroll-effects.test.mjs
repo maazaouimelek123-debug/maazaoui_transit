@@ -152,6 +152,51 @@ await run([
       const r = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), seeds: document.querySelectorAll(".seed").length, hidden: [...document.querySelectorAll("#main [data-bloom], #main [data-reveal]")].filter((e) => getComputedStyle(e).opacity === "0").length }));
       console.log("reduced motion:", r);
       assert(!r.fx && r.seeds === 0 && r.hidden === 0, "reduced-motion fallback broken");
+      // Bandeau « animations réduites » : visible, et « Activer les effets » force la plongée (choix mémorisé)
+      const notice = await page.evaluate(() => { const n = document.querySelector(".fx-notice"); return { hidden: n.hidden, display: getComputedStyle(n).display, text: n.querySelector("p").textContent, btn: n.querySelector("[data-fx]").textContent }; });
+      console.log("fx notice:", notice);
+      assert(!notice.hidden && notice.display !== "none" && /Activer/.test(notice.btn), "reduced-motion notice missing");
+      await shot(page, "fx-notice-reduced");
+      await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click(".fx-notice [data-fx='on']")]);
+      await page.waitForTimeout(2600);
+      const forced = await page.evaluate(() => ({ cls: document.documentElement.className, seeds: document.querySelectorAll(".seed").length, pref: localStorage.getItem("mz:fx"), btn: document.querySelector(".fx-notice [data-fx]").textContent, hidden: document.querySelector(".fx-notice").hidden }));
+      console.log("forced on:", forced);
+      assert(/\bfx\b/.test(forced.cls) && /\bfx-forced\b/.test(forced.cls) && forced.seeds === 12 && forced.pref === "on" && /calme/.test(forced.btn) && !forced.hidden, "forcing effects on failed");
+      await scrollTo(page, 2600);
+      await page.waitForTimeout(700);
+      const bloomed = await page.evaluate(() => document.querySelectorAll("[data-bloom].is-bloomed").length);
+      console.log("forced blooms:", bloomed);
+      assert(bloomed >= 1, "forced effects do not bloom");
+      // Retour au mode calme
+      await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click(".fx-notice [data-fx='off']")]);
+      await page.waitForTimeout(800);
+      const calm = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), pref: localStorage.getItem("mz:fx") }));
+      console.log("calm again:", calm);
+      assert(!calm.fx && calm.pref === "off", "returning to calm mode failed");
+      await page.evaluate(() => localStorage.removeItem("mz:fx"));
+    },
+  },
+  {
+    name: "init-error-fallback",
+    url: "index.html",
+    viewport: { width: 1366, height: 768 },
+    expectErrors: /simulated/,
+    fn: async (page) => {
+      // Une exception au démarrage des effets ne doit jamais laisser la page vide
+      // (1) erreur dans un module de core.js (ResizeObserver cassé) : isolée, le reste démarre
+      await page.addInitScript(() => { Object.defineProperty(window, "ResizeObserver", { get() { throw new Error("simulated"); } }); });
+      await page.reload({ waitUntil: "load" });
+      await page.waitForTimeout(2600);
+      const a = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), loaderDone: !document.querySelector(".loader") || document.querySelector(".loader").classList.contains("is-done"), pill: (document.querySelector("[data-av='pill']") || {}).textContent, errors: (window.__mzErrors || []).map((x) => x.m) }));
+      console.log("core module error:", a);
+      assert(a.fx && a.loaderDone && /initCanvases/.test(a.errors.join(" ")) && a.pill && a.pill.trim().length > 0, "a failing core module stopped the others");
+      // (2) erreur dans l'initialisation des effets (scroll.js) : la classe fx est retirée, rien n'est masqué
+      await page.addInitScript(() => { const orig = window.matchMedia; window.matchMedia = (q) => { if (q === "(max-width: 760px)") throw new Error("simulated-scroll"); return orig.call(window, q); }; });
+      await page.reload({ waitUntil: "load" });
+      await page.waitForTimeout(2600);
+      const b = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), hiddenBlooms: [...document.querySelectorAll("#main [data-bloom]")].filter((e) => getComputedStyle(e).opacity === "0").length, errors: (window.__mzErrors || []).map((x) => x.m) }));
+      console.log("scroll init error:", b);
+      assert(!b.fx && b.hiddenBlooms === 0 && /simulated-scroll/.test(b.errors.join(" ")), "page left empty after a scroll.js init error");
     },
   },
 ]);

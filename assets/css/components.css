@@ -5,6 +5,10 @@
 /* ------------------------------------------------------------- Préchargeur */
 .loader {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 10001;
   display: grid;
@@ -83,6 +87,10 @@
 .loader-bar::after {
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: var(--accent);
   transform-origin: left;
@@ -105,6 +113,10 @@ html.veil-in .loader {
 /* ------------------------------------------------------ Voile de transition */
 .page-veil {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 10000;
   pointer-events: none;
@@ -434,6 +446,10 @@ html.veil-in .page-veil {
 /* --------------------------------------------------------------- Menu mobile */
 .menu {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 99;
   background: rgba(var(--bg-rgb), 0.92);
@@ -533,6 +549,10 @@ html.veil-in .page-veil {
 .btn-primary::before {
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: -1;
   background: var(--accent-2);
@@ -598,6 +618,10 @@ html.veil-in .page-veil {
 .card::before {
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 0;
   background: radial-gradient(
@@ -613,6 +637,10 @@ html.veil-in .page-veil {
 .card::after {
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 0;
   border-radius: inherit;
@@ -803,18 +831,122 @@ html.veil-in .page-veil {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal],
-  [data-reveal-stagger] > *,
-  .split-words .w > span {
+  html:not(.fx-forced) [data-reveal],
+  html:not(.fx-forced) [data-reveal-stagger] > *,
+  html:not(.fx-forced) .split-words .w > span {
     opacity: 1;
     transform: none;
   }
 }
 
+/* Navigateurs sans aspect-ratio (Safari < 15, Chrome < 88) : hauteurs explicites */
+@supports not (aspect-ratio: 1) {
+  .portal {
+    height: min(560px, 82vw);
+  }
+
+  .live::before {
+    height: 60%;
+  }
+}
+
+/* ------------------------------------------- Bandeau « animations réduites » */
+.fx-notice {
+  position: fixed;
+  left: 16px;
+  bottom: 18px;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 100px);
+  padding: 8px 10px 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(var(--bg-rgb), 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--text-2);
+  font-size: 0.82rem;
+  line-height: 1.3;
+  box-shadow: var(--shadow);
+}
+
+.fx-notice[hidden] {
+  display: none;
+}
+
+.fx-notice p {
+  margin: 0;
+}
+
+.fx-notice-btn {
+  appearance: none;
+  border: 1px solid rgba(var(--accent-rgb), 0.6);
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--accent-2);
+  font: inherit;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fx-notice-btn:hover,
+.fx-notice-btn:focus-visible {
+  background: rgba(var(--accent-rgb), 0.26);
+}
+
+.fx-notice-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.fx-notice-close:hover,
+.fx-notice-close:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .fx-notice {
+    left: 12px;
+    right: 82px;
+    bottom: 14px;
+    max-width: none;
+    flex-wrap: wrap;
+    border-radius: 16px;
+  }
+}
+
+/* Mode allégé (appareil lent, mesuré au chargement) : plus de grain en fusion ni de flou lourd */
+html.lite .grain {
+  display: none;
+}
+
+html.lite .aurora span {
+  filter: blur(36px);
+  opacity: 0.7;
+}
+
 /* ------------------------------------------------------------------ Marquee */
 .marquee {
   overflow: hidden;
+  border-top: 1px;
+  border-bottom: solid var(--line);
   border-block: 1px solid var(--line);
+  padding-top: 18px;
+  padding-bottom: 18px;
   padding-block: 18px;
   -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
@@ -841,6 +973,8 @@ html.veil-in .page-veil {
   display: inline-flex;
   align-items: center;
   gap: 26px;
+  padding-left: 13px;
+  padding-right: 13px;
   padding-inline: 13px;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -930,6 +1064,10 @@ html.veil-in .page-veil {
 .live::before {
   content: "";
   position: absolute;
+  top: -40%;
+  right: auto;
+  bottom: auto;
+  left: -20%;
   inset: -40% auto auto -20%;
   width: 60%;
   aspect-ratio: 1;
@@ -1145,6 +1283,8 @@ html.veil-in .page-veil {
 .portal-wrap {
   display: grid;
   place-items: center;
+  padding-top: clamp(1rem, 4vw, 3rem);
+  padding-bottom: clamp(1rem, 4vw, 3rem);
   padding-block: clamp(1rem, 4vw, 3rem);
 }
 
@@ -1161,6 +1301,10 @@ html.veil-in .page-veil {
 
 .portal-ring {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   border-radius: 50%;
   padding: 1.5px;
@@ -1173,6 +1317,10 @@ html.veil-in .page-veil {
 }
 
 .portal-ring--2 {
+  top: 14px;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
   inset: 14px;
   animation-direction: reverse;
   animation-duration: 11s;
@@ -1181,6 +1329,10 @@ html.veil-in .page-veil {
 
 .portal-halo {
   position: absolute;
+  top: -12%;
+  right: -12%;
+  bottom: -12%;
+  left: -12%;
   inset: -12%;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(var(--p-accent-rgb, 63, 217, 203), 0.22), transparent 62%);
@@ -1197,6 +1349,10 @@ html.veil-in .page-veil {
 
 .portal-inner {
   position: absolute;
+  top: 26px;
+  right: 26px;
+  bottom: 26px;
+  left: 26px;
   inset: 26px;
   border-radius: 50%;
   overflow: hidden;
@@ -1218,6 +1374,10 @@ html.veil-in .page-veil {
 .portal-inner::after {
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   border-radius: 50%;
   box-shadow: inset 0 2px 30px rgba(255, 255, 255, 0.08);
@@ -1226,6 +1386,10 @@ html.veil-in .page-veil {
 
 .portal-center {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   display: grid;
   place-items: center;
@@ -1283,6 +1447,10 @@ html.veil-in .page-veil {
 
 .portal-text {
   position: absolute;
+  top: -34px;
+  right: -34px;
+  bottom: -34px;
+  left: -34px;
   inset: -34px;
   animation: spin 40s linear infinite;
   pointer-events: none;
@@ -1502,6 +1670,8 @@ html.veil-in .page-veil {
 /* ------------------------------------------------------------ Pied de page */
 .footer {
   border-top: 1px solid var(--line);
+  padding-top: clamp(3rem, 6vw, 5rem);
+  padding-bottom: 2rem;
   padding-block: clamp(3rem, 6vw, 5rem) 2rem;
   position: relative;
 }

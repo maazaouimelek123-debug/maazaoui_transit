@@ -51,6 +51,13 @@ Le site est publié sur <https://maazaouimelek123-debug.github.io/maazaoui_trans
 
 Modifier `assets/js/config.js` directement sur la branche par défaut (horaires, fermetures, contacts) suffit donc à mettre le site à jour. Un nom de domaine personnalisé peut être ajouté dans les réglages Pages.
 
+## Animations réduites, appareils lents, anciens navigateurs
+
+- Si le système du visiteur demande la réduction des animations (iOS « Réduire les animations », Android « Supprimer les animations », Windows « Effets d'animation » désactivés), le site s'affiche en version calme et un bandeau discret propose **« Activer les effets »**. Le choix est mémorisé (`localStorage` `mz:fx` = `on` ou `off`) et le bandeau permet de revenir au mode calme.
+- Si l'appareil peine (moins d'environ 22 images par seconde mesurées après le chargement), la classe `lite` retire le grain en fusion et allège le flou de fond.
+- Une erreur de script au démarrage ne laisse jamais la page vide : chaque module de `core.js` est isolé, et un échec dans `scroll.js` retire la classe `fx` (contenu visible sans effets). Les erreurs sont consignées pour le diagnostic ci-dessous.
+- Les raccourcis CSS récents (`inset`, `padding-block`, `margin-inline`, `aspect-ratio`) ont un repli explicite pour les navigateurs antérieurs à 2021.
+
 ## Diagnostic à distance
 
 Si l'effet de plongée ne s'affiche pas chez un visiteur, lui faire ouvrir <https://maazaouimelek123-debug.github.io/maazaoui_transit/?diag=1> : un panneau analyse son navigateur (version servie, réglage « réduire les animations », effets actifs, éclosion des blocs au défilement, cache périmé, erreurs de script) et propose de copier le rapport. Le panneau est chargé uniquement avec `?diag=1` (`assets/js/diag.js`) et n'envoie rien.

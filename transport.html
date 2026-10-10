@@ -14,7 +14,8 @@
   <meta property="og:site_name" content="By Ocean and Air Transport">
   <meta property="og:title" content="By Ocean and Air Transport — Par mer, par air, jusqu'à votre porte">
   <meta property="og:description" content="Fret maritime FCL/LCL, fret aérien, groupage et porte-à-porte, avec le dédouanement intégré par Maazaoui Transit.">
-  <meta property="og:image" content="assets/img/og-cover-transport.png">
+  <meta property="og:image" content="https://maazaouimelek123-debug.github.io/maazaoui_transit/assets/img/og-cover-transport.png">
+  <meta property="og:url" content="https://maazaouimelek123-debug.github.io/maazaoui_transit/transport.html">
   <meta property="og:locale" content="fr_TN">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -23,8 +24,8 @@
 
   <meta name="mz-build" content="dev">
   <script>(function(){try{if(sessionStorage.getItem("mz:veil"))document.documentElement.classList.add("veil-in")}catch(e){}
-  /* Journal d'erreurs lisible par diag.html (diagnostic à distance). */
-  var E=window.__mzErrors=[];window.addEventListener("error",function(e){E.push({m:String(e.message||e),s:String(e.filename||"").split("/").pop(),l:e.lineno||0})});window.addEventListener("unhandledrejection",function(e){E.push({m:"promise: "+String(e.reason&&e.reason.message||e.reason),s:"",l:0})})})();</script>
+  /* Journal d'erreurs lu par le diagnostic (index.html?diag=1) ; une erreur au chargement d'un script du site retire la classe fx (page toujours lisible). */
+  var E=window.__mzErrors=[];window.addEventListener("error",function(e){E.push({m:String(e.message||e),s:String(e.filename||"").split("/").pop(),l:e.lineno||0});if(document.readyState!=="complete"&&/assets\/js\//.test(String(e.filename||"")))document.documentElement.classList.remove("fx","fx-forced","smooth")});window.addEventListener("unhandledrejection",function(e){E.push({m:"promise: "+String(e.reason&&e.reason.message||e.reason),s:"",l:0})})})();</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -514,6 +515,11 @@
   <button class="to-top" type="button" aria-label="Retour en haut">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
+  <div class="fx-notice" hidden>
+    <p data-i18n="fx.reduced">Animations réduites par le réglage de votre appareil.</p>
+    <button class="fx-notice-btn" type="button" data-fx="on" data-i18n="fx.enable">Activer les effets</button>
+    <button class="fx-notice-close" type="button" data-fx="dismiss" aria-label="Fermer" data-i18n-attr="aria-label:fx.close">×</button>
+  </div>
   <div class="toast" role="status" aria-live="polite"></div>
 
   <script src="assets/js/config.js" defer></script>

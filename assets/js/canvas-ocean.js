@@ -28,7 +28,8 @@
     );
 
     const ctx = canvas.getContext("2d", { alpha: true });
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Réglage système, sauf choix explicite du visiteur (MZ.motion, posé par core.js).
+    const reduced = window.MZ && MZ.motion ? !MZ.motion.enabled : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let w = 0;
     let h = 0;
     let dpr = 1;
@@ -176,16 +177,17 @@
       cancelAnimationFrame(raf);
     }
 
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
-    const io = new IntersectionObserver(
-      (entries) => {
-        visible = entries[0].isIntersecting;
-        visible ? start() : stop();
-      },
-      { threshold: 0.02 }
-    );
-    io.observe(canvas);
+    if ("ResizeObserver" in window) new ResizeObserver(resize).observe(canvas);
+    else window.addEventListener("resize", resize);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(
+        (entries) => {
+          visible = entries[0].isIntersecting;
+          visible ? start() : stop();
+        },
+        { threshold: 0.02 }
+      ).observe(canvas);
+    }
     document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
 
     resize();

@@ -29,8 +29,47 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 
-  if (REDUCED || UI.scrollEffects === false) return;
+  /* Mouvement : réglage système, surchargé par le choix mémorisé du visiteur (MZ.motion, core.js). */
+  const MOTION = MZ.motion || { enabled: !REDUCED, systemReduced: REDUCED, pref: null, set() {} };
+  const onMedia = MZ.onMedia || ((mql, fn) => (typeof mql.addEventListener === "function" ? mql.addEventListener("change", fn) : mql.addListener(fn)));
+
+  /* Bandeau : explique l'absence d'effets quand le système réduit les animations, et
+     propose de les activer (choix mémorisé) ; en sens inverse, permet de revenir au calme. */
+  (function fxNotice() {
+    const box = $(".fx-notice");
+    if (!box) return;
+    let dismissed = false;
+    try { dismissed = sessionStorage.getItem("mz:fx-notice") === "1"; } catch (e) {}
+    const forced = MOTION.enabled && MOTION.systemReduced;
+    const reducedNow = !MOTION.enabled && UI.scrollEffects !== false;
+    if (dismissed || (!forced && !reducedNow)) return;
+    const text = box.querySelector("p");
+    const btn = box.querySelector("[data-fx='on']");
+    if (forced) {
+      text.setAttribute("data-i18n", "fx.forced");
+      text.textContent = "Effets activés malgré le réglage de votre appareil.";
+      btn.setAttribute("data-i18n", "fx.calm");
+      btn.textContent = "Revenir au mode calme";
+      btn.dataset.fx = "off";
+    }
+    box.hidden = false;
+    box.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-fx]");
+      if (!t) return;
+      if (t.dataset.fx === "dismiss") {
+        try { sessionStorage.setItem("mz:fx-notice", "1"); } catch (err) {}
+        box.hidden = true;
+        return;
+      }
+      MOTION.set(t.dataset.fx === "on" ? "on" : "off");
+      location.reload();
+    });
+  })();
+
+  if (!MOTION.enabled || UI.scrollEffects === false) return;
   html.classList.add("fx");
+  if (MOTION.systemReduced) html.classList.add("fx-forced");
+  try {
 
   /* ------------------------------------------------- Défilement inertiel */
   function initSmooth() {
@@ -654,12 +693,41 @@
   window.addEventListener("load", () => {
     dirty = true;
   });
-  DESKTOP.addEventListener("change", () => {
+  onMedia(DESKTOP, () => {
     dirty = true;
   });
 
   initSmooth();
   requestAnimationFrame(frame);
 
+  /* Mode allégé : si l'appareil peine (moins de ~22 images/s mesurées au repos après le
+     chargement), on retire les couches les plus coûteuses (grain en fusion, flou lourd). */
+  (function lite() {
+    if (UI.lite === false) return;
+    const measure = () => {
+      if (document.hidden) return;
+      let n = 0;
+      let last = performance.now();
+      const deltas = [];
+      const tick = (now) => {
+        deltas.push(now - last);
+        last = now;
+        if (++n < 40) return requestAnimationFrame(tick);
+        deltas.sort((a, b) => a - b);
+        const median = deltas[Math.floor(deltas.length / 2)];
+        if (median > 45) html.classList.add("lite");
+      };
+      requestAnimationFrame(tick);
+    };
+    if (document.readyState === "complete") setTimeout(measure, 1500);
+    else window.addEventListener("load", () => setTimeout(measure, 1500));
+  })();
+
   MZ.scroll = { refresh: () => { dirty = true; } };
+  } catch (e) {
+    // Une erreur d'initialisation ne doit jamais laisser la page vide : on retire les effets.
+    html.classList.remove("fx", "fx-forced", "smooth");
+    if (window.console) console.error("[MZ] scroll", e);
+    if (window.__mzErrors) window.__mzErrors.push({ m: "scroll: " + (e && e.message), s: "scroll.js", l: 0 });
+  }
 })();

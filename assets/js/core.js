@@ -17,7 +17,20 @@
   const html = document.documentElement;
   const body = document.body;
   const PAGE = body.dataset.page || "customs";
-  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SYSTEM_REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Mouvement : le réglage système peut être surchargé par le choix mémorisé du visiteur
+  // (localStorage mz:fx = "on" | "off", posé par le bandeau .fx-notice de scroll.js).
+  const FX_PREF = (() => { try { return localStorage.getItem("mz:fx"); } catch (e) { return null; } })();
+  MZ.motion = {
+    systemReduced: SYSTEM_REDUCED,
+    pref: FX_PREF,
+    enabled: FX_PREF === "on" ? true : FX_PREF === "off" ? false : !SYSTEM_REDUCED,
+    set(v) { try { v ? localStorage.setItem("mz:fx", v) : localStorage.removeItem("mz:fx"); } catch (e) {} },
+  };
+  const REDUCED = !MZ.motion.enabled;
+  /* matchMedia : addEventListener n'existe pas sur Safari/iOS ≤ 13 (addListener seulement). */
+  const onMedia = (mql, fn) => (typeof mql.addEventListener === "function" ? mql.addEventListener("change", fn) : mql.addListener(fn));
+  MZ.onMedia = onMedia;
   const FINE_POINTER = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   /* ======================================================= 01 · Utilitaires */
@@ -286,7 +299,7 @@
           burger.focus();
         }
       });
-      window.matchMedia("(min-width: 1024px)").addEventListener("change", (e) => e.matches && setOpen(false));
+      onMedia(window.matchMedia("(min-width: 1024px)"), (e) => e.matches && setOpen(false));
     }
 
     // Retour en haut (visibilité gérée dans onScroll)
@@ -739,22 +752,17 @@
 
   /* ============================================================ Démarrage */
   function boot() {
-    initLang();
-    bindData();
-    initVeilArrival();
-    initLoader();
-    initPortals();
-    initNav();
-    initCursor();
-    initMagnetic();
-    initCards();
-    initMarquee();
-    initReveal();
-    initClipboard();
-    initForm();
-    initCanvases();
-    initAvailability();
-    initPortalPause();
+    // Chaque module est isolé : une erreur dans l'un (navigateur ancien, API absente) n'empêche
+    // ni le retrait du préchargeur ni les modules suivants. L'erreur est consignée pour ?diag=1.
+    const steps = [initLang, bindData, initVeilArrival, initLoader, initPortals, initNav, initCursor, initMagnetic, initCards, initMarquee, initReveal, initClipboard, initForm, initCanvases, initAvailability, initPortalPause];
+    for (const step of steps) {
+      try {
+        step();
+      } catch (e) {
+        if (window.console) console.error("[MZ] " + step.name, e);
+        if (window.__mzErrors) window.__mzErrors.push({ m: step.name + ": " + (e && e.message), s: "core.js", l: 0 });
+      }
+    }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(reanchor, 60));
     // Diagnostic à distance : index.html?diag=1 charge un panneau qui rapporte ce que ce navigateur voit.
     if (/[?&]diag=1(&|$)/.test(location.search)) {

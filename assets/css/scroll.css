@@ -96,6 +96,8 @@ html.fx [data-parallax] {
 /* --------------------------------------- Section horizontale épinglée */
 @media (min-width: 1000px) {
   html.fx .hscroll {
+    padding-top: 0;
+    padding-bottom: 0;
     padding-block: 0;
   }
 
@@ -120,6 +122,8 @@ html.fx [data-parallax] {
     display: flex;
     gap: 22px;
     align-items: stretch;
+    padding-left: max(var(--gutter), calc((100vw - var(--container)) / 2));
+    padding-right: max(var(--gutter), calc((100vw - var(--container)) / 2));
     padding-inline: max(var(--gutter), calc((100vw - var(--container)) / 2));
     padding-right: max(var(--gutter), calc((100vw - var(--container)) / 2));
     width: max-content;
@@ -166,6 +170,10 @@ html.fx [data-parallax] {
 .hscroll-hint i::after {
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: var(--accent);
   transform: translateX(-100%);
@@ -181,6 +189,8 @@ html.fx [data-parallax] {
 /* Repli (mobile ou sans effets) : grille classique */
 .hscroll-track {
   width: min(var(--container), 100% - 2 * var(--gutter));
+  margin-left: auto;
+  margin-right: auto;
   margin-inline: auto;
   display: grid;
   gap: clamp(14px, 2vw, 22px);
@@ -218,6 +228,10 @@ html.fx [data-parallax] {
 /* ------------------------------------------------------ Champ persistant */
 .depth-field {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: -1;
   pointer-events: none;
@@ -237,6 +251,10 @@ html.fx [data-parallax] {
   /* Vignette : garde le centre lisible et creuse les bords avec la profondeur (opacité seule : compositeur) */
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   background: radial-gradient(120% 90% at 50% 40%, transparent 35%, rgba(var(--bg-rgb), 0.7) 100%);
   opacity: calc(0.5 + var(--depth, 0) * 0.5);
@@ -272,6 +290,10 @@ html.fx body[data-page="customs"] .curtain > .marquee {
 /* Voile de teinte : un seul élément fixe, piloté par son opacité (compositeur) */
 .tint-veil {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -370,6 +392,10 @@ html.fx [data-bloom] [data-reveal-stagger] > * {
 .seed::after {
   content: "";
   position: absolute;
+  top: -2px;
+  right: -2px;
+  bottom: -2px;
+  left: -2px;
   inset: -2px;
   border-radius: 50%;
   background: rgba(var(--accent-rgb), 0.4);
@@ -496,12 +522,18 @@ html:not(.fx) .seed {
 
 /* Les libellés n'apparaissent qu'à la demande (survol d'un point, clavier) : ils ne recouvrent jamais le contenu. */
 .rail-node:hover span,
-.rail:focus-within .rail-node span,
-.rail-node:focus-visible span {
+.rail:focus-within .rail-node span {
   visibility: visible;
   opacity: 1;
   transform: translate(10px, -50%);
   transition: opacity 0.3s, transform 0.4s var(--ease-out), color 0.3s, visibility 0s;
+}
+
+/* Règle séparée : un :focus-visible dans une liste invalidait tout le groupe sur Safari < 15.4 */
+.rail-node:focus-visible span {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(10px, -50%);
 }
 
 .rail-node.is-active {

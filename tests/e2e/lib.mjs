@@ -63,7 +63,9 @@ export async function run(cases) {
     } catch (e) {
       errors.push(`test: ${e.message}`);
     }
-    if (errors.length) problems.push({ name: c.name, errors });
+    // c.expectErrors : expression régulière des erreurs console attendues (cas simulant une panne)
+    const unexpected = c.expectErrors ? errors.filter((e) => !c.expectErrors.test(e)) : errors;
+    if (unexpected.length) problems.push({ name: c.name, errors: unexpected });
     await ctx.close();
   }
   await browser.close();
