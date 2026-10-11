@@ -26,7 +26,7 @@ La « 4D » : trois dimensions d'espace (une caméra qui vole dans un décor) et
 6. **Chapitres** : sur-titre numéroté, titre, deux lignes, filet ; apparition/disparition en fondu, montée et netteté (flou → net) liées au défilement.
 7. **Vitesse** : traînées radiales et élargissement de la focale pendant les accélérations.
 8. **Progression** : ligne verticale fine à droite, une graduation par chapitre, allumée au passage.
-9. **Sortie** : fondu vers le fond du site, puis la page reprend (hero, disponibilité, contact). Le rail de navigation est masqué pendant le film.
+9. **Sortie** : comme les blocs de la page, le film se termine sur un **point jaune** qui s'ouvre en cercle doré et dévoile le reste de la page (le hero est déjà sous le dernier écran du film). Plus bas, chaque bloc naît à son tour d'un point jaune qui s'ouvre au défilement. Le rail de navigation est masqué pendant le film.
 10. **Accès direct** : « Passer l'intro » et tous les liens du menu mènent au contenu sans regarder le film.
 11. **Accessibilité / sobriété** : sans JavaScript ou si l'appareil demande moins d'animations, pas de film, la page commence au hero. Bilingue FR/EN.
 12. **Performance** : rien à télécharger hormis Three.js (CDN) ; textures générées ; rendu suspendu hors écran ; densités réduites sur mobile ; le champ de particules de la page est mis en pause pendant le film.
@@ -41,8 +41,9 @@ La « 4D » : trois dimensions d'espace (une caméra qui vole dans un décor) et
 | 0,24 – 0,40 | Le port de Radès au crépuscule : quai, portiques, piles de conteneurs, ville en lumières | *Commissionnaire en douane agréé · Radès · depuis 2010* / **MAAZAOUI TRANSIT** |
 | 0,43 – 0,58 | Au ras du sol, entre les piles de conteneurs, vers le soleil | **01 — Douane · Dédouanement** |
 | 0,62 – 0,77 | Le long d'un porte-conteneurs qui appareille | **02 — Mer · Fret maritime** |
-| 0,81 – 0,94 | Sur la piste de Tunis-Carthage derrière un avion, roulage, décollage | **03 — Air · Fret aérien** |
-| 0,95 – 1,00 | L'avion monte vers le soleil, fondu | *Un seul interlocuteur, du départ usine à la mainlevée.* |
+| 0,79 – 0,90 | Sur la piste de Tunis-Carthage derrière un avion, roulage, décollage | **03 — Air · Fret aérien** |
+| 0,885 – 0,96 | L'avion monte vers le soleil ; un point jaune naît au centre | *Un seul interlocuteur, du départ usine à la mainlevée.* |
+| 0,95 – 0,977 | Le point s'ouvre en cercle doré : la page apparaît dessous | — |
 
 ## 4. Mise en œuvre
 

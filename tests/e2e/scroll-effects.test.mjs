@@ -103,7 +103,10 @@ await run([
         planes: document.querySelectorAll(".fourd-plane").length,
       }));
       console.log("film mount:", a);
-      assert(/\bcinema\b/.test(a.cls) && /\bfourd\b/.test(a.cls) && a.sticky === "sticky" && a.height > 900 * 5 && a.skip === "#accueil" && a.planes >= 5, "film not mounted");
+      // La page doit être visible (régression : une classe « cinema » sur <html> masquait tout le document)
+      const shown = await page.evaluate(() => ({ html: getComputedStyle(document.documentElement).display, body: document.body.offsetHeight }));
+      assert(shown.html !== "none" && shown.body > 900 * 5, "page hidden: " + JSON.stringify(shown));
+      assert(/\bhas-film\b/.test(a.cls) && /\bfourd\b/.test(a.cls) && a.sticky === "sticky" && a.height > 900 * 5 && a.skip === "#accueil" && a.planes >= 5, "film not mounted");
       assert(a.state.mode === "3d" || a.state.mode === "poster", "film mode: " + a.state.mode);
       if (a.state.mode === "3d") {
         const still = await page.evaluate(() => MZ.cinema.still(0.47, 320, 180).length);
@@ -120,6 +123,27 @@ await run([
       console.log("film mid:", mid);
       assert(mid.p > 0.45 && mid.p < 0.56 && mid.op > 0.8 && mid.on && Number(mid.rail) < 0.1, "film chapter not shown mid-way");
       await shot(page, "fx-film-mid");
+      // Sortie : le point jaune s'ouvre en cercle (masque troué) et dévoile le hero, déjà dessous
+      await scrollTo(page, film.top + film.run * 0.965);
+      await page.waitForTimeout(1600);
+      const opening = await page.evaluate(() => ({
+        cls: document.querySelector("#film").className,
+        mask: document.querySelector(".cinema-stage").style.maskImage || document.querySelector(".cinema-stage").style.webkitMaskImage,
+        ring: Number(document.querySelector(".cinema-ring").style.opacity),
+        heroTop: document.querySelector("#accueil").getBoundingClientRect().top,
+        on: document.documentElement.classList.contains("cinema-on"),
+      }));
+      console.log("film opening:", opening);
+      assert(/is-opening/.test(opening.cls) && /radial-gradient/.test(opening.mask) && opening.ring > 0 && opening.heroTop < 900 && !opening.on, "film does not open onto the page");
+      await shot(page, "fx-film-opening");
+      // « Passer l'intro » depuis le début : la caméra se place sans rejouer le film, la page est cliquable
+      await scrollTo(page, 0);
+      await page.waitForTimeout(600);
+      await page.click(".cinema-skip");
+      await page.waitForTimeout(1800);
+      const skipped = await page.evaluate(() => { const el = document.elementFromPoint(innerWidth / 2, innerHeight / 2); return { sp: MZ.cinema.state().sp, hit: !!(el && el.closest("#accueil")) }; });
+      console.log("after skip:", skipped);
+      assert(skipped.sp > 0.97 && skipped.hit, "skip intro does not reveal the page");
       // Après le film : la page reprend (plus de cinema-on)
       const end = await page.evaluate(() => MZ.cinema.end());
       await scrollTo(page, end + 200);

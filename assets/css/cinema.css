@@ -1,16 +1,35 @@
 /* =============================================================================
-   CINÉMA — film d'introduction piloté par le défilement (actif sous html.cinema)
+   CINÉMA — film d'introduction piloté par le défilement (actif sous html.has-film)
    ========================================================================== */
 
-.cinema {
+section.cinema {
   display: none;
 }
 
-html.cinema .cinema {
+html.has-film section.cinema {
   display: block;
   position: relative;
   z-index: 2;
   height: 750vh; /* remplacé par la longueur configurée (cinema.length) */
+  /* Le dernier écran du film recouvre le hero : quand le film s'ouvre, la page est déjà dessous. */
+  margin-bottom: -100vh;
+}
+
+/* Pendant l'ouverture, les clics traversent le film vers la page dévoilée ; « Passer l'intro »
+   et la progression du film s'effacent (le bouton « retour en haut » reprend sa place). */
+.cinema.is-opening .cinema-stage {
+  pointer-events: none;
+}
+
+.cinema-skip,
+.cinema-progress {
+  transition: opacity 0.35s, visibility 0.35s;
+}
+
+.cinema.is-opening .cinema-skip,
+.cinema.is-opening .cinema-progress {
+  opacity: 0;
+  visibility: hidden;
 }
 
 /* La scène : plein écran, épinglée pendant toute la durée du film */
@@ -68,18 +87,48 @@ html.cinema .cinema {
   background:
     radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(3, 5, 10, 0.55) 100%),
     linear-gradient(0deg, rgba(4, 6, 12, 0.72) 0%, rgba(4, 6, 12, 0.18) 34%, transparent 52%),
-    linear-gradient(180deg, rgba(4, 6, 12, 0.45) 0%, transparent 18%);
+    linear-gradient(180deg, rgba(4, 6, 12, 0.62) 0%, rgba(4, 6, 12, 0.25) 11%, transparent 22%); /* lisibilité de la navigation sur le ciel clair */
 }
 
-/* Fondu de sortie vers le fond du site : le hero prend le relais sans couture */
-.cinema-fade {
+/* Sortie : le point jaune (comme les graines des blocs) puis l'anneau doré qui ouvre le film */
+.cinema-seed {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  inset: 0;
-  background: var(--bg);
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 26px 6px rgba(var(--accent-rgb), 0.65);
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+
+.cinema-seed::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  bottom: -3px;
+  left: -3px;
+  inset: -3px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.45);
+  animation: seed-pulse 2.4s ease-out infinite;
+}
+
+.cinema-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent-2);
+  box-shadow: 0 0 28px 4px rgba(var(--accent-rgb), 0.55), inset 0 0 22px rgba(var(--accent-rgb), 0.4);
+  transform: translate(-50%, -50%);
   opacity: 0;
   pointer-events: none;
 }
@@ -156,7 +205,7 @@ html.cinema .cinema {
   top: 50%;
   margin-top: -0.75em;
   text-align: center;
-  font-size: clamp(42px, 10.5vw, 188px);
+  font-size: clamp(42px, 9vw, 176px); /* « MAAZAOUI TRANSIT » ≈ 9,3 em : environ 84 % de la largeur */
 }
 
 .cine-kicker {
@@ -242,11 +291,11 @@ html.cinema .cinema {
   background: rgba(246, 241, 234, 0.45);
 }
 
-/* Fin : promesse centrée */
+/* Fin : promesse centrée, au-dessus du point jaune qui va s'ouvrir */
 .cine-ch--end {
   left: 0;
   right: 0;
-  top: 50%;
+  top: 36%;
   transform-origin: 50% 50%;
   margin-top: -1.2em;
   padding: 0 var(--gutter);
@@ -338,9 +387,12 @@ html.cinema .cinema {
   height: 13px;
 }
 
-/* Pendant le film : le rail de la page s'efface (la ligne du film le remplace) */
-html.cinema-on .rail {
-  opacity: 0;
+/* Pendant le film : le rail et le bouton « retour en haut » s'effacent (la ligne du film et
+   « Passer l'intro » les remplacent ; le bouton chevauchait « Passer l'intro » en bas à droite). */
+html.cinema-on .rail,
+html.cinema-on .to-top {
+  opacity: 0 !important;
+  visibility: hidden;
   pointer-events: none;
 }
 
@@ -349,6 +401,23 @@ html.cinema-on .rail {
 }
 
 @media (max-width: 760px) {
+  /* Titre de marque : sur deux lignes plutôt que coupé par les bords */
+  .cine-ch--brand {
+    font-size: clamp(40px, 15vw, 96px);
+    margin-top: -1.1em;
+    padding: 0 var(--gutter);
+  }
+
+  .cine-brand {
+    white-space: normal;
+    line-height: 0.92;
+  }
+
+  .cine-kicker {
+    letter-spacing: 0.22em;
+    line-height: 1.7;
+  }
+
   .cine-ch--title {
     bottom: 13vh;
   }

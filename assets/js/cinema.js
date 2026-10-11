@@ -10,7 +10,9 @@
      · 01 Dédouanement : au ras des piles de conteneurs
      · 02 Fret maritime : le long d'un porte-conteneurs qui appareille
      · 03 Fret aérien : sur la piste de Tunis-Carthage, décollage
-     · montée vers le ciel, fondu, la page reprend au hero
+     · montée vers le ciel ; un point jaune naît au centre et s'ouvre en
+       cercle doré : il dévoile la page (le hero est déjà sous le film),
+       comme les blocs qui éclosent plus bas
    Titres en surimpression par chapitre, ligne de progression à droite,
    « Passer l'intro ». Variante vidéo : si MZ.SITE.cinema.video est renseigné,
    une vidéo (rushes réels ou générés) est lue image par image au défilement à
@@ -43,13 +45,15 @@
   const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js";
 
   try {
-  html.classList.add("cinema");
+  // Classe de page distincte du nom de la section : « .cinema { display: none } » ne doit jamais viser <html>.
+  html.classList.add("has-film");
   section.style.height = `${Math.max(3, Number(CFG.length) || 7.5) * 100}vh`;
 
   const stage = $(".cinema-stage", section);
   const canvas = $(".cinema-canvas", section);
   const speedCanvas = $(".cinema-speed", section);
-  const fade = $(".cinema-fade", section);
+  const seedEl = $(".cinema-seed", section);
+  const ringEl = $(".cinema-ring", section);
   const fill = $(".cinema-progress i", section);
   const SMALL = window.matchMedia("(max-width: 760px)").matches;
 
@@ -154,7 +158,8 @@
     { p: 0.42, pos: [0, 70, 120], look: [0, 12, -420], fov: 54 },
     { p: 0.47, pos: [0, 9, -150], look: [0, 9, -600], fov: 62 },
     { p: 0.55, pos: [0, 9, -460], look: [0, 12, -900], fov: 62 },
-    { p: 0.61, pos: [60, 90, -640], look: [420, 20, -100], fov: 54 },
+    { p: 0.61, pos: [60, 110, -640], look: [420, 20, -100], fov: 54 },
+    { p: 0.64, pos: [270, 82, -112], look: [500, 18, 220], fov: 52 }, // entre deux portiques (x = 225 et 315)
     { p: 0.67, pos: [330, 45, 80], look: [560, 12, 270], fov: 50 },
     { p: 0.74, pos: [560, 32, 190], look: [760, 16, 280], fov: 50 },
     { p: 0.79, pos: [900, 170, -60], look: [1600, 40, -900], fov: 54 },
@@ -813,7 +818,7 @@
       wake.material.opacity = 0.25 + sv * 0.35;
       // Avion : roulage, rotation, décollage
       const q = clamp((p - 0.84) / 0.16, 0, 1);
-      const z = -850 - 2900 * Math.pow(q, 1.7);
+      const z = -850 - 3200 * Math.pow(q, 1.4); // toujours 150 à 450 m devant la caméra : il ne masque jamais les titres
       const climb = Math.max(0, -z - 1900);
       plane.position.set(RW_X, 4.6 + climb * 0.3, z);
       plane.rotation.x = Math.min(0.24, climb * 0.0011);
@@ -848,7 +853,13 @@
       camera.updateProjectionMatrix();
     }
 
-    return { render, resize, info: () => renderer.info.render, camera };
+    /** Coupe franche : la prochaine image ne mesure pas de vitesse (pas de traînées après un saut). */
+    function cut() {
+      first = true;
+      speed = 0;
+    }
+
+    return { render, resize, cut, info: () => renderer.info.render, camera };
   }
 
   /* --------------------------------------------- Variante : vidéo réelle */
@@ -885,8 +896,37 @@
   let sp = 0;
   let last = performance.now();
   let covering = false;
-  let lastFade = "";
+  let started = false;
+  let lastOpen = "";
   let lastFill = "";
+  // Sortie du film : le point jaune naît (SEED_*), puis s'ouvre en cercle et dévoile la page (OPEN_*).
+  const SEED_FROM = 0.928;
+  const OPEN_FROM = 0.95;
+  const OPEN_TO = 0.977; // ouvert avant 1 : une arrivée par ancre (#accueil, marge de la navigation) voit la page
+
+  /** Ouverture : masque circulaire troué sur la scène, anneau doré au bord, graine qui s'efface. */
+  function paintOpening(k) {
+    const open = smooth(clamp((k - OPEN_FROM) / (OPEN_TO - OPEN_FROM), 0, 1));
+    const born = smooth(clamp((k - SEED_FROM) / (OPEN_FROM - SEED_FROM), 0, 1));
+    const key = `${open.toFixed(4)}|${born.toFixed(3)}`;
+    if (key === lastOpen) return open;
+    lastOpen = key;
+    const R = Math.hypot(w, h) * 0.56 * open; // 0,5 × diagonale couvre tout l'écran depuis le centre
+    const mask = open > 0 ? `radial-gradient(circle at 50% 50%, transparent ${R.toFixed(1)}px, #000 ${(R + 1.5).toFixed(1)}px)` : "";
+    stage.style.webkitMaskImage = mask;
+    stage.style.maskImage = mask;
+    section.classList.toggle("is-opening", open > 0);
+    if (seedEl) {
+      seedEl.style.opacity = (born * (1 - open)).toFixed(3);
+      seedEl.style.transform = `scale(${(born * (1 + open * 3)).toFixed(3)})`;
+    }
+    if (ringEl) {
+      const d = 2 * (R + 4);
+      ringEl.style.width = ringEl.style.height = `${d.toFixed(1)}px`;
+      ringEl.style.opacity = open > 0 && open < 1 ? Math.min(1, open * 8, (1 - open) * 6).toFixed(3) : "0";
+    }
+    return open;
+  }
   let w = 0;
   let h = 0;
   let camSpeed = 0;
@@ -910,11 +950,19 @@
     const vh = window.innerHeight;
     const run = Math.max(1, r.height - vh);
     p = clamp(-r.top / run, 0, 1);
+    if (!started || Math.abs(p - sp) > 0.2) {
+      // Saut (« Passer l'intro », lien du menu, position restaurée au rechargement) : la caméra
+      // se place directement, sans rejouer le film en accéléré par-dessus la page.
+      sp = p;
+      started = true;
+      if (film && film.cut) film.cut();
+    }
     sp += (p - sp) * (1 - Math.pow(0.9, dt / 16.667)); // inertie de caméra
     if (Math.abs(p - sp) < 0.00002) sp = p;
     const visible = r.bottom > 0 && r.top < vh;
 
-    const cover = r.top <= 1 && r.bottom >= vh - 1;
+    // Le film couvre l'écran tant qu'il est épinglé et pas encore ouvert sur la page.
+    const cover = r.top <= 1 && r.bottom >= vh - 1 && sp < OPEN_FROM;
     if (cover !== covering) {
       covering = cover;
       html.classList.toggle("cinema-on", cover);
@@ -924,12 +972,12 @@
 
     if (visible) {
       paintChapters(sp);
-      const fv = (sp > 0.955 ? smooth((sp - 0.955) / 0.045) : 0).toFixed(3);
-      if (fv !== lastFade && fade) fade.style.opacity = lastFade = fv;
+      const open = paintOpening(sp);
       const fl = sp.toFixed(4);
       if (fl !== lastFill && fill) fill.style.transform = `scaleY(${(lastFill = fl)})`;
-      if (film) camSpeed = film.render(sp, dt, now / 1000) || 0;
-      speedFx.draw(clamp((camSpeed - 140) / 520, 0, 1), w, h);
+      // Film entièrement ouvert : plus rien à dessiner, la page est à l'écran.
+      if (film && open < 1) camSpeed = film.render(sp, dt, now / 1000) || 0;
+      speedFx.draw(open < 1 ? clamp((camSpeed - 140) / 520, 0, 1) : 0, w, h);
     }
     requestAnimationFrame(frame);
   }
@@ -941,7 +989,7 @@
     if (window.__mzErrors) window.__mzErrors.push({ m: "cinema: " + (e && e.message), s: "cinema.js", l: 0 });
     // Échec avant que le visiteur ne soit entré dans le film : on le retire, la page commence au hero.
     if (window.scrollY < 40) {
-      html.classList.remove("cinema", "cinema-on");
+      html.classList.remove("has-film", "cinema-on");
       section.remove();
       const node = $('.rail-node[href="#film"]');
       if (node) node.remove();
@@ -993,7 +1041,7 @@
   };
   } catch (e) {
     // Une erreur d'initialisation ne doit jamais laisser un grand vide en haut de page.
-    html.classList.remove("cinema", "cinema-on");
+    html.classList.remove("has-film", "cinema-on");
     section.remove();
     if (window.console) console.error("[MZ] cinema", e);
     if (window.__mzErrors) window.__mzErrors.push({ m: "cinema: " + (e && e.message), s: "cinema.js", l: 0 });
