@@ -135,6 +135,7 @@
       champ: canvas ? { taille: `${canvas.width}×${canvas.height}`, couverture: alpha, profondeur: $(".depth-field").style.getPropertyValue("--depth") } : "absent",
       chemin: { segments: $$(".journey-done").length, etats: $$(".journey-done").map((el) => (el.style.visibility === "hidden" ? "H" : el.style.clipPath.indexOf("url(") === 0 ? "A" : "D")).join("") },
       rail: $$(".rail-node").length,
+      quatreD: MZ.fourd && MZ.fourd.space ? Object.assign({ plans: $$(".fourd-plane").length }, MZ.fourd.space.state()) : /\bfourd\b/.test(html.className) ? "classe sans module" : "inactif",
       erreurs: (window.__mzErrors || []).slice(0, 10),
     };
   }
@@ -165,7 +166,7 @@
     if (s.loader !== "absent" && !s.loader.done) return ["bad", "L’écran de chargement n’est jamais parti : transmettez le rapport."];
     if (r.apresDefilement && r.apresDefilement.blocsEclos === 0) return ["bad", "Effets actifs mais aucun bloc n’éclot au défilement : défaut à analyser, transmettez le rapport."];
     const mobile = !e.pointeurFin;
-    return ["ok", `Tout est actif chez vous (version ${e.build}) : hero qui recule, champ de particules, blocs qui éclosent depuis les points dorés, chemin pointillé.${mobile ? " Sur écran tactile, le défilement inertiel est désactivé par conception et le champ est plus discret." : ""} Si cela ne correspond pas à ce que vous voyez, décrivez-le avec ce rapport.`];
+    return ["ok", `Tout est actif chez vous (version ${e.build}) : hero qui recule, champ de particules, blocs qui éclosent depuis les points dorés, chemin pointillé${typeof s.quatreD === "object" ? ", espace 4D (étoiles, portes par section, contenu en volume)" : ""}.${mobile ? " Sur écran tactile, le défilement inertiel est désactivé par conception et le champ est plus discret." : ""} Si cela ne correspond pas à ce que vous voyez, décrivez-le avec ce rapport.`];
   }
 
   /* ---------------------------------------------------------------- séquence */
@@ -203,6 +204,7 @@
       ["Fenêtre", `${report.env.fenetre} · ×${report.env.dpr} · tactile ${report.env.touch}`],
       ["Réduction des animations", report.env.reducedMotion ? "OUI (effet désactivé)" : "non"],
       ["Effets (classe fx)", /\bfx\b/.test(report.site.classesHtml) ? "actifs" : "inactifs"],
+      ["Effet 4D", typeof report.site.quatreD === "object" ? `actif · ${report.site.quatreD.gates} portes · ${report.site.quatreD.plans} plans` : report.site.quatreD],
       ["Blocs éclos après défilement", report.apresDefilement ? `${report.apresDefilement.blocsEclos} / ${report.apresDefilement.blocs}` : "?"],
       ["Champ de particules", report.site.champ === "absent" ? "absent" : `couverture ${report.basDePage && report.basDePage.champ.couverture}`],
       ["Erreurs de script", report.site.erreurs.length ? report.site.erreurs.map((x) => x.m).join(" | ") : "aucune"],

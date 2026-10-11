@@ -89,6 +89,63 @@ await run([
     },
   },
   {
+    name: "index-4d",
+    url: "index.html",
+    viewport: { width: 1440, height: 900 },
+    fn: async (page) => {
+      // Couche 4D montée : espace, une porte par section (hors accueil), plans, relevé
+      const a = await page.evaluate(() => ({
+        cls: document.documentElement.className,
+        gates: window.MZ && MZ.fourd && MZ.fourd.space && MZ.fourd.space.state().gates,
+        rails: document.querySelectorAll("[data-rail]").length,
+        planes: document.querySelectorAll(".fourd-plane").length,
+        hud: getComputedStyle(document.querySelector(".hud4d")).display,
+        canvas: document.querySelector(".space canvas").width,
+      }));
+      console.log("4d mount:", a);
+      assert(/\bfourd\b/.test(a.cls) && a.gates === a.rails - 1 && a.planes >= 5 && a.hud === "flex" && a.canvas > 0, "4D layer not mounted");
+      // La caméra avance avec le défilement
+      const z0 = await page.evaluate(() => MZ.fourd.space.state().z);
+      await scrollTo(page, 2400);
+      await page.waitForTimeout(900);
+      const z1 = await page.evaluate(() => MZ.fourd.space.state().z);
+      console.log("camera z:", z0, "→", z1);
+      assert(z1 - z0 > 4000, "camera did not fly forward");
+      // Au repos, une section à l'écran est à plat (l'inclinaison de vitesse est retombée)
+      const rest = await page.evaluate(() => [...document.querySelectorAll(".fourd-plane")].filter((s) => { const r = s.getBoundingClientRect(); return r.top < innerHeight * 0.4 && r.bottom > innerHeight * 0.6; }).map((s) => s.style.transform));
+      console.log("planes at rest:", rest);
+      assert(rest.length >= 1 && rest.every((t) => t === ""), "planes still tilted at rest");
+      // Sortie par le haut : la section repart dans la profondeur
+      const exitTop = await page.evaluate(() => { const s = document.querySelector("#disponibilite"); return s.getBoundingClientRect().bottom + window.scrollY - window.innerHeight * 0.2; });
+      await scrollTo(page, exitTop);
+      await page.waitForTimeout(700);
+      const exit = await page.evaluate(() => { const s = document.querySelector("#disponibilite"); return { t: s.style.transform, o: s.style.opacity }; });
+      console.log("exiting section:", exit);
+      assert(/rotateX\((1\d|2\d)\./.test(exit.t) && Number(exit.o) < 0.65, "exiting section not receding");
+      await shot(page, "fx-4d-exit");
+      // Le chemin pointillé est mesuré à plat malgré les plans inclinés (reconstruit ici, section en sortie)
+      await page.evaluate(() => window.dispatchEvent(new Event("resize")));
+      await page.waitForTimeout(400);
+      const flat = await page.evaluate(() => {
+        // Extrémités de chaque courbe du chemin (M x y, puis tous les 3 points de « C »)
+        const nums = document.querySelector(".journey-dots").getAttribute("d").replace(/[MC,]/g, " ").trim().split(/\s+/).map(Number);
+        const pairs = [];
+        for (let i = 0; i < nums.length; i += 2) pairs.push([nums[i], nums[i + 1]]);
+        const ends = [pairs[0]];
+        for (let i = 3; i < pairs.length; i += 3) ends.push(pairs[i]);
+        const base = document.querySelector(".journey").getBoundingClientRect().top + window.scrollY;
+        const seeds = MZ.fourd.neutral(() =>
+          [...document.querySelectorAll(".curtain .seed")].map((el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2 + window.scrollY - base]; }).sort((p, q) => p[1] - q[1])
+        );
+        return { n: ends.length, seeds: seeds.length, maxDiff: Math.max(...ends.map((e, i) => Math.hypot(e[0] - seeds[i][0], e[1] - seeds[i][1]))) };
+      });
+      console.log("journey vs flat seeds:", flat);
+      assert(flat.n === flat.seeds && flat.maxDiff <= 2, "journey not measured flat");
+      const sw = await page.evaluate(() => document.documentElement.scrollWidth);
+      assert(sw <= 1440, "horizontal overflow " + sw);
+    },
+  },
+  {
     name: "index-anchor",
     url: "index.html#contact",
     viewport: { width: 1366, height: 768 },
@@ -149,9 +206,9 @@ await run([
     viewport: { width: 1366, height: 768 },
     context: { reducedMotion: "reduce" },
     fn: async (page) => {
-      const r = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), seeds: document.querySelectorAll(".seed").length, hidden: [...document.querySelectorAll("#main [data-bloom], #main [data-reveal]")].filter((e) => getComputedStyle(e).opacity === "0").length }));
+      const r = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), fourd: document.documentElement.classList.contains("fourd"), space: getComputedStyle(document.querySelector(".space")).display, seeds: document.querySelectorAll(".seed").length, hidden: [...document.querySelectorAll("#main [data-bloom], #main [data-reveal]")].filter((e) => getComputedStyle(e).opacity === "0").length }));
       console.log("reduced motion:", r);
-      assert(!r.fx && r.seeds === 0 && r.hidden === 0, "reduced-motion fallback broken");
+      assert(!r.fx && !r.fourd && r.space === "none" && r.seeds === 0 && r.hidden === 0, "reduced-motion fallback broken");
       // Bandeau « animations réduites » : visible, et « Activer les effets » force la plongée (choix mémorisé)
       const notice = await page.evaluate(() => { const n = document.querySelector(".fx-notice"); return { hidden: n.hidden, display: getComputedStyle(n).display, text: n.querySelector("p").textContent, btn: n.querySelector("[data-fx]").textContent }; });
       console.log("fx notice:", notice);
@@ -194,9 +251,9 @@ await run([
       await page.addInitScript(() => { const orig = window.matchMedia; window.matchMedia = (q) => { if (q === "(max-width: 760px)") throw new Error("simulated-scroll"); return orig.call(window, q); }; });
       await page.reload({ waitUntil: "load" });
       await page.waitForTimeout(2600);
-      const b = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), hiddenBlooms: [...document.querySelectorAll("#main [data-bloom]")].filter((e) => getComputedStyle(e).opacity === "0").length, errors: (window.__mzErrors || []).map((x) => x.m) }));
+      const b = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), fourd: document.documentElement.classList.contains("fourd"), hiddenBlooms: [...document.querySelectorAll("#main [data-bloom]")].filter((e) => getComputedStyle(e).opacity === "0").length, errors: (window.__mzErrors || []).map((x) => x.m) }));
       console.log("scroll init error:", b);
-      assert(!b.fx && b.hiddenBlooms === 0 && /simulated-scroll/.test(b.errors.join(" ")), "page left empty after a scroll.js init error");
+      assert(!b.fx && !b.fourd && b.hiddenBlooms === 0 && /simulated-scroll/.test(b.errors.join(" ")), "page left empty after a scroll.js init error");
     },
   },
 ]);

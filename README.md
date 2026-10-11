@@ -15,6 +15,7 @@ Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présenta
 | Design génératif | Champ de flux (courants / corridors) sur la page douane, vagues et trajectoire aérienne sur la page transport. Pause automatique hors écran, rendu statique si l'utilisateur préfère réduire les animations. |
 | Expérience de défilement | Défilement inertiel à la molette, hero qui recule dans la profondeur, cartes empilées pour le parcours, section de services horizontale épinglée (transport), texte qui s'allume mot à mot, teinte d'ambiance évolutive, barre de progression. Désactivable dans `config.js` (`ui.smoothScroll`, `ui.scrollEffects`) et automatiquement coupé si l'utilisateur préfère réduire les animations. |
 | Plongée dans le champ | Sur la page d'accueil, le champ de particules est une couche fixe derrière tout le contenu : il s'accélère et zoome à mesure que l'on descend. Chaque bloc (`data-bloom`) naît d'un point jaune pulsant et s'ouvre en cercle vers le lecteur, avec une salve de particules dans le champ au moment de l'éclosion. Un chemin pointillé doré relie les points d'éclosion à travers la page et s'illumine au passage ; un rail à gauche (`data-rail`) sert de navigation. Avec la profondeur, le courant du champ devient radial (sensation d'avancer). |
+| Effet 4D | Trois dimensions d'espace, et le défilement comme quatrième. Derrière le contenu, un espace en vraie perspective (`.space`, `fourd.js`) : la caméra avance quand on défile, dérive doucement au repos, et les étoiles s'étirent en traînées quand on défile vite. Chaque section (`data-rail`) a sa porte dorée, à l'emblème du bureau, que l'on traverse à l'arrivée de la section ; la caméra vole de porte en porte, s'incline dans les virages et suit le pointeur (ou le gyroscope sur Android). Le contenu est en volume : les sections s'inclinent selon la vitesse de défilement et repartent dans la profondeur en sortant par le haut ; le hero bascule en arrière, les blocs arrivent inclinés. Un relevé x · y · z · t (heure de Tunis) longe le bord droit sur grand écran. Sur la page transport, l'espace vit dans le rideau et apparaît quand celui-ci recouvre le hero. Désactivable dans `config.js` (`ui.fourD`), coupé avec les autres effets si l'utilisateur préfère réduire les animations. |
 | Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone, l'e-mail et le code Plus. Carte Google Maps intégrée depuis les coordonnées de la configuration, sans clé API. |
 | Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
 | Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
@@ -55,7 +56,8 @@ Modifier `assets/js/config.js` directement sur la branche par défaut (horaires,
 
 - Si le système du visiteur demande la réduction des animations (iOS « Réduire les animations », Android « Supprimer les animations », Windows « Effets d'animation » désactivés), le site s'affiche en version calme et un bandeau discret propose **« Activer les effets »**. Le choix est mémorisé (`localStorage` `mz:fx` = `on` ou `off`) et le bandeau permet de revenir au mode calme.
 - Si l'appareil peine (moins d'environ 22 images par seconde mesurées après le chargement), la classe `lite` retire le grain en fusion et allège le flou de fond.
-- Une erreur de script au démarrage ne laisse jamais la page vide : chaque module de `core.js` est isolé, et un échec dans `scroll.js` retire la classe `fx` (contenu visible sans effets). Les erreurs sont consignées pour le diagnostic ci-dessous.
+- Une erreur de script au démarrage ne laisse jamais la page vide : chaque module de `core.js` est isolé, et un échec dans `scroll.js` retire la classe `fx` (contenu visible sans effets). Un échec dans `fourd.js` retire seulement la classe `fourd` : la plongée classique reste. Les erreurs sont consignées pour le diagnostic ci-dessous.
+- En mode allégé, l'espace 4D compte environ moitié moins d'étoiles.
 - Les raccourcis CSS récents (`inset`, `padding-block`, `margin-inline`, `aspect-ratio`) ont un repli explicite pour les navigateurs antérieurs à 2021.
 
 ## Diagnostic à distance
@@ -83,6 +85,7 @@ assets/css/components.css  Composants partagés (navigation, cartes, portail, fo
 assets/css/customs.css     Mise en page de la page douane
 assets/css/ocean.css       Mise en page de la page transport
 assets/css/scroll.css      Effets de défilement (actifs sous html.fx)
+assets/css/fourd.css       Effet 4D : espace, plans inclinés, relevé (actifs sous html.fourd)
 assets/js/config.js        ★ Données métier modifiables
 assets/js/i18n.js          Dictionnaire anglais et bascule de langue
 assets/js/availability.js  Moteur d'horaires (fuseau, saisons, fériés)
@@ -90,6 +93,7 @@ assets/js/canvas-flow.js   Animation « champ de flux »
 assets/js/canvas-ocean.js  Animation « vagues et trajectoire aérienne »
 assets/js/core.js          Orchestration de l'interface
 assets/js/scroll.js        Moteur des effets de défilement (une seule boucle rAF)
+assets/js/fourd.js         Effet 4D : espace en perspective, portes par section, sections en volume
 ```
 
 ## Limites connues

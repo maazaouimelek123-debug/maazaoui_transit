@@ -20,6 +20,9 @@ MZ.SITE = {
     smoothScroll: true,
     /* Effets pilotés par le défilement (hero épinglé, cartes empilées…). */
     scrollEffects: true,
+    /* Effet 4D : espace en perspective traversé au défilement, portes par section,
+       contenu incliné en volume, relevé x · y · z · t (nécessite scrollEffects). */
+    fourD: true,
   },
 
   /* ---------------------------------------------------------------- Marque */
