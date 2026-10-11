@@ -13,7 +13,8 @@
      • champ persistant .depth-field (profondeur), éclosion [data-bloom]
        depuis une graine jaune, rail de parcours [data-rail]
      • html.fourd : hero et éclosions inclinés en profondeur ; le registre
-       d'effets est exposé (MZ.scroll.register) pour les plans de fourd.js
+       d'effets est exposé (MZ.scroll.register) pour les plans de fourd.js ;
+       la profondeur du champ démarre après le film (cinema.js)
    Tout est désactivé si l'utilisateur préfère réduire les animations ; sans
    JavaScript, la mise en page reste la mise en page classique (html sans .fx).
    ========================================================================== */
@@ -382,8 +383,10 @@
     const canvas = field.querySelector("canvas");
     let last = "";
     register((y) => {
-      const max = Math.max(1, html.scrollHeight - vh);
-      const eased = 1 - Math.pow(1 - clamp(y / max, 0, 1), 1.7);
+      // La plongée commence après le film d'introduction (cinema.js), s'il est présent.
+      const start = MZ.cinema && MZ.cinema.end ? MZ.cinema.end() : 0;
+      const max = Math.max(1, html.scrollHeight - vh - start);
+      const eased = 1 - Math.pow(1 - clamp((y - start) / max, 0, 1), 1.7);
       const v = eased.toFixed(2); // pas de 1 % : imperceptible, et bien moins de recompositions
       if (v === last) return null;
       last = v;

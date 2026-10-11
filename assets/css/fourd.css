@@ -1,40 +1,7 @@
 /* =============================================================================
-   4D — espace en profondeur, plans inclinés et relevé (actifs sous html.fourd)
+   4D — plans inclinés après le film (actifs sous html.fourd)
    ========================================================================== */
 
-/* ------------------------------------------------------------- Espace */
-/* Accueil : couche fixe au-dessus du champ de flux, derrière tout le contenu.
-   Transport : placée dans le rideau (z-index -1 dans son contexte), elle passe
-   au-dessus du fond du rideau et sous le contenu ; son opacité suit le rideau. */
-.space {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
-  display: none;
-}
-
-html.fourd .space {
-  display: block;
-}
-
-.space canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* Le champ de flux s'efface un peu : les étoiles et les portes donnent la profondeur. */
-html.fourd .depth-field canvas {
-  opacity: calc(0.62 + var(--depth, 0) * 0.18);
-}
-
-/* -------------------------------------------------------------- Plans */
 /* Mesure « à plat » (chemin pointillé, graines) : transformations neutralisées. */
 html.fourd-measure .fourd-plane {
   transform: none !important;
@@ -43,64 +10,4 @@ html.fourd-measure .fourd-plane {
 html.fourd .fourd-plane {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-}
-
-/* ------------------------------------------------------------- Relevé */
-/* Bandeau vertical dans la marge droite, en miroir du rail de gauche : il ne recouvre
-   jamais le contenu (affiché à partir de 1180 px, comme le rail). */
-.hud4d {
-  position: fixed;
-  right: 12px;
-  top: 50%;
-  z-index: 94;
-  display: none;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 4px;
-  -webkit-writing-mode: vertical-rl;
-  writing-mode: vertical-rl;
-  transform: translateY(-50%);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  pointer-events: none;
-  contain: layout paint;
-}
-
-@media (min-width: 1180px) {
-  html.fourd .hud4d {
-    display: flex;
-  }
-}
-
-.hud4d b {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-radius: 999px;
-  padding: 6px 2px;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-}
-
-.hud4d span {
-  white-space: nowrap;
-}
-
-.hud4d i {
-  display: inline-block;
-  min-height: 5.4ch; /* repli : axe de lecture vertical */
-  min-inline-size: 5.4ch;
-  margin-top: 5px; /* axe de lecture vertical : l'espace entre la lettre et la valeur est en haut */
-  font-style: normal;
-  color: var(--text-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.hud4d [data-h="t"] {
-  min-height: 8.4ch;
-  min-inline-size: 8.4ch;
-  color: var(--accent-2);
 }
