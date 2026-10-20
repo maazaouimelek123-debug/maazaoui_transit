@@ -93,6 +93,14 @@ await run([
     url: "index.html",
     viewport: { width: 1440, height: 900 },
     fn: async (page) => {
+      // Environnement sans accès au CDN de Three.js : le film se retire avant l'entrée du
+      // visiteur et la page commence au hero. On vérifie ce repli, puis on s'arrête.
+      const gone = await page.evaluate(() => ({ film: !!document.querySelector("#film"), cls: document.documentElement.className, hero: document.querySelector(".hero") && document.querySelector(".hero").getBoundingClientRect().top, errors: (window.__mzErrors || []).map((x) => x.m).join(" | ") }));
+      if (!gone.film) {
+        console.log("film indisponible ici (CDN Three.js inaccessible), repli vérifié :", gone);
+        assert(!/\bhas-film\b/.test(gone.cls) && gone.hero !== null && gone.hero < 200 && /cinema/.test(gone.errors), "film fallback broken: " + JSON.stringify(gone));
+        return;
+      }
       // Film d'ouverture : section épinglée, 3D prête (ou affiche si WebGL / le CDN manque)
       const a = await page.evaluate(() => ({
         cls: document.documentElement.className,

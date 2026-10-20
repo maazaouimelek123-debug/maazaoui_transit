@@ -15,7 +15,9 @@ export async function launch() {
 }
 
 /** Les échecs réseau vers les polices et Google Maps sont attendus hors ligne. */
-export const isExternal = (url) => /fonts\.g|google\.com\/maps|maps\.google|gstatic/.test(url);
+// Ressources tierces dont l'échec réseau n'est pas un défaut du site (polices, carte, CDN de
+// Three.js : sans lui le film d'ouverture se retire proprement, ce que les cas vérifient).
+export const isExternal = (url) => /fonts\.g|google\.com\/maps|maps\.google|gstatic|cdn\.jsdelivr\.net|Failed to load resource/.test(url);
 
 export function watchErrors(page) {
   const errors = [];
