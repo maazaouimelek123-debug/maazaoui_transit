@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# À adapter après mise en ligne (remplacer par le domaine définitif)
+# Adresse inscrite automatiquement au déploiement (scripts/build.sh : URL Netlify ou GitHub Pages)
 Sitemap: https://maazaouimelek123-debug.github.io/maazaoui_transit/sitemap.xml

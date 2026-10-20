@@ -43,15 +43,16 @@ Toutes les données modifiables sont dans **`assets/js/config.js`** :
 6. l'URL du site dans `robots.txt` et `sitemap.xml` si un nom de domaine personnalisé est utilisé ;
 7. les visuels de partage `assets/img/og-cover.png` et `assets/img/og-cover-transport.png` (1200 × 630) sont fournis ; les régénérer si le slogan change.
 
-## Mise en ligne (GitHub Pages)
+## Mise en ligne (Netlify)
 
-Le site est publié sur <https://maazaouimelek123-debug.github.io/maazaoui_transit/>.
+Le site est hébergé sur **Netlify**, relié au dépôt GitHub : chaque push sur la branche de production choisie dans Netlify publie le site en une minute environ. La configuration est dans `netlify.toml` :
 
-1. Dans le dépôt : **Settings → Pages → Build and deployment → Source : GitHub Actions** (déjà fait).
-2. Le workflow `.github/workflows/pages.yml` publie automatiquement à chaque push sur la branche par défaut du dépôt (actuellement `claude/wizardly-gates-91bh18`) et sur `main` ; il peut aussi être lancé à la main (**Actions → Deploy to GitHub Pages → Run workflow**).
-3. L'environnement `github-pages` n'autorise les déploiements que depuis la branche par défaut : pour publier depuis `main`, la définir comme branche par défaut (**Settings → Branches**).
+- `scripts/build.sh` copie le site dans `dist/` (sans compilation), ajoute `?v=<commit>` aux feuilles de style et scripts, inscrit le commit dans `<meta name="mz-build">` et remplace l'adresse publique (aperçus de partage `og:url` / `og:image`, `sitemap.xml`, `robots.txt`) par l'URL du site Netlify (domaine personnalisé compris, variable `URL` fournie par Netlify) ;
+- en-têtes de sécurité et cache long pour `assets/css` et `assets/js` (sans risque : toujours référencés avec `?v=`).
 
-Modifier `assets/js/config.js` directement sur la branche par défaut (horaires, fermetures, contacts) suffit donc à mettre le site à jour. Un nom de domaine personnalisé peut être ajouté dans les réglages Pages.
+Modifier `assets/js/config.js` directement sur GitHub (horaires, fermetures, contacts) suffit donc à mettre le site à jour. Un domaine personnalisé s'ajoute dans Netlify (Domain management) ; rien à changer dans le code.
+
+GitHub Pages reste disponible en secours : **Actions → Deploy to GitHub Pages → Run workflow** (dépôt public et Settings → Pages → Source : GitHub Actions). Il utilise le même script avec l'adresse `https://maazaouimelek123-debug.github.io/maazaoui_transit`.
 
 ## Animations réduites, appareils lents, anciens navigateurs
 
@@ -63,9 +64,9 @@ Modifier `assets/js/config.js` directement sur la branche par défaut (horaires,
 
 ## Diagnostic à distance
 
-Si l'effet de plongée ne s'affiche pas chez un visiteur, lui faire ouvrir <https://maazaouimelek123-debug.github.io/maazaoui_transit/?diag=1> : un panneau analyse son navigateur (version servie, réglage « réduire les animations », effets actifs, éclosion des blocs au défilement, cache périmé, erreurs de script) et propose de copier le rapport. Le panneau est chargé uniquement avec `?diag=1` (`assets/js/diag.js`) et n'envoie rien.
+Si l'effet de plongée ne s'affiche pas chez un visiteur, lui faire ouvrir l'adresse du site suivie de `?diag=1` (par exemple `https://<site>.netlify.app/?diag=1`) : un panneau analyse son navigateur (version servie, réglage « réduire les animations », effets actifs, éclosion des blocs au défilement, cache périmé, erreurs de script) et propose de copier le rapport. Le panneau est chargé uniquement avec `?diag=1` (`assets/js/diag.js`) et n'envoie rien.
 
-À chaque déploiement, le workflow ajoute `?v=<commit>` aux feuilles de style et scripts et inscrit le commit dans `<meta name="mz-build">` : les navigateurs rechargent toujours la version du jour.
+À chaque déploiement, `scripts/build.sh` ajoute `?v=<commit>` aux feuilles de style et scripts et inscrit le commit dans `<meta name="mz-build">` : les navigateurs rechargent toujours la version du jour.
 
 ## Développement local
 
