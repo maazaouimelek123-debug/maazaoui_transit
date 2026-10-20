@@ -1434,29 +1434,6 @@ html.lite .aurora span {
   height: 14px;
 }
 
-.portal-text {
-  position: absolute;
-  top: -14px;
-  right: -14px;
-  bottom: -14px;
-  left: -14px;
-  inset: -14px; /* texte rapproché du liseré, désormais seul contour */
-  animation: spin 40s linear infinite;
-  pointer-events: none;
-}
-
-.portal.is-offscreen .portal-text {
-  animation-play-state: paused;
-}
-
-.portal-text text {
-  font-family: var(--font-mono);
-  font-size: 3.1px;
-  letter-spacing: 0.1em;
-  fill: var(--text-3);
-  text-transform: uppercase;
-}
-
 .clock .sep {
   animation: blink-soft 1.2s ease-in-out infinite;
 }
