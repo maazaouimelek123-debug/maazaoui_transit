@@ -1299,54 +1299,21 @@ html.lite .aurora span {
   outline-offset: 12px;
 }
 
-/* Contour du portail : un liseré complet collé au globe (lisible, net) et une orbite
-   extérieure très fine sur laquelle court un reflet. Les anciens arcs partiels donnaient
-   l'impression d'un cercle cassé. */
-.portal-ring {
+/* Contour du portail : un seul liseré complet collé au globe, lueur douce vers l'extérieur
+   et vers l'intérieur. (Les arcs partiels tournants donnaient un cercle cassé ; l'orbite
+   extérieure a été retirée à la demande du propriétaire.) */
+.portal-rim {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--p-accent-rgb, 63, 217, 203), 0.24);
-  pointer-events: none;
-}
-
-/* Reflet qui parcourt l'orbite extérieure */
-.portal-ring::after {
-  content: "";
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  bottom: -1px;
-  left: -1px;
-  inset: -1px;
-  border-radius: 50%;
-  padding: 1.5px;
-  background: conic-gradient(from 0deg, transparent 0 78%, rgba(var(--p-accent-rgb, 63, 217, 203), 0.8) 90%, transparent 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: spin 9s linear infinite;
-}
-
-/* Liseré du globe : anneau complet, lueur douce vers l'extérieur et vers l'intérieur */
-.portal-ring--2 {
   top: 23px;
   right: 23px;
   bottom: 23px;
   left: 23px;
   inset: 23px;
+  border-radius: 50%;
   border: 1.5px solid rgba(var(--p-accent-rgb, 63, 217, 203), 0.62);
   box-shadow: 0 0 28px rgba(var(--p-accent-rgb, 63, 217, 203), 0.32), inset 0 0 22px rgba(var(--p-accent-rgb, 63, 217, 203), 0.22);
+  pointer-events: none;
   z-index: 1;
-}
-
-.portal-ring--2::after {
-  display: none;
 }
 
 .portal-halo {
@@ -1469,16 +1436,15 @@ html.lite .aurora span {
 
 .portal-text {
   position: absolute;
-  top: -34px;
-  right: -34px;
-  bottom: -34px;
-  left: -34px;
-  inset: -34px;
+  top: -14px;
+  right: -14px;
+  bottom: -14px;
+  left: -14px;
+  inset: -14px; /* texte rapproché du liseré, désormais seul contour */
   animation: spin 40s linear infinite;
   pointer-events: none;
 }
 
-.portal.is-offscreen .portal-ring::after,
 .portal.is-offscreen .portal-text {
   animation-play-state: paused;
 }
