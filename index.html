@@ -26,7 +26,7 @@
   <meta name="mz-build" content="dev">
   <script>(function(){try{if(sessionStorage.getItem("mz:veil"))document.documentElement.classList.add("veil-in")}catch(e){}
   /* Journal d'erreurs lu par le diagnostic (index.html?diag=1) ; une erreur au chargement d'un script du site retire la classe fx (page toujours lisible). */
-  var E=window.__mzErrors=[];window.addEventListener("error",function(e){E.push({m:String(e.message||e),s:String(e.filename||"").split("/").pop(),l:e.lineno||0});if(document.readyState!=="complete"&&/assets\/js\//.test(String(e.filename||"")))document.documentElement.classList.remove("fx","fx-forced","smooth")});window.addEventListener("unhandledrejection",function(e){E.push({m:"promise: "+String(e.reason&&e.reason.message||e.reason),s:"",l:0})})})();</script>
+  var E=window.__mzErrors=[];window.addEventListener("error",function(e){E.push({m:String(e.message||e),s:String(e.filename||"").split("/").pop(),l:e.lineno||0});if(document.readyState!=="complete"&&/assets\/js\//.test(String(e.filename||"")))document.documentElement.classList.remove("fx","fx-forced","smooth","fourd")});window.addEventListener("unhandledrejection",function(e){E.push({m:"promise: "+String(e.reason&&e.reason.message||e.reason),s:"",l:0})})})();</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,6 +36,8 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/customs.css">
   <link rel="stylesheet" href="assets/css/scroll.css">
+  <link rel="stylesheet" href="assets/css/fourd.css">
+  <link rel="stylesheet" href="assets/css/cinema.css">
   <noscript><style>.loader,.page-veil,.cursor,.cursor-ring{display:none!important}[data-reveal],[data-reveal-stagger]>*,.split-words .w>span{opacity:1!important;transform:none!important}</style></noscript>
 
   <script type="application/ld+json">
@@ -150,6 +152,49 @@
   </div>
 
   <main id="main">
+    <!-- ============================================== Film (effet 4D, cinema.js) -->
+    <!-- Le défilement fait avancer une caméra dans un film 3D. Masqué sans JavaScript
+         ou si le visiteur préfère réduire les animations : la page commence alors au hero. -->
+    <section class="cinema" id="film" aria-label="Film d'introduction : le voyage d'une marchandise" data-i18n-attr="aria-label:cine.aria" data-rail="Film" data-rail-en="Film">
+      <div class="cinema-stage">
+        <canvas class="cinema-canvas" aria-hidden="true"></canvas>
+        <canvas class="cinema-speed" aria-hidden="true"></canvas>
+        <div class="cinema-shade" aria-hidden="true"></div>
+        <!-- Sortie : un point jaune s'ouvre en cercle et dévoile le reste de la page, comme les blocs plus bas -->
+        <div class="cinema-seed" aria-hidden="true"></div>
+        <div class="cinema-ring" aria-hidden="true"></div>
+        <div class="cinema-chapters" aria-hidden="true">
+          <div class="cine-ch cine-ch--intro" data-from="-0.2" data-to="0.075">
+            <span class="cine-scroll"><span data-i18n="hero.scroll">Défiler</span><i></i></span>
+          </div>
+          <div class="cine-ch cine-ch--brand" data-from="0.235" data-to="0.4">
+            <p class="cine-kicker" data-i18n="cine.kicker">Commissionnaire en douane agréé · Radès · depuis 2010</p>
+            <p class="cine-brand">Maazaoui Transit</p>
+          </div>
+          <div class="cine-ch cine-ch--title" data-from="0.43" data-to="0.585">
+            <p class="cine-eyebrow"><b>01</b><i></i><span data-i18n="cine.c1.eyebrow">Douane</span></p>
+            <p class="cine-title" data-i18n="cine.c1.title">Dédouanement</p>
+            <p class="cine-text" data-i18n="cine.c1.text">Déclarations en détail, titres du commerce extérieur, classification tarifaire : chaque dossier relu avant dépôt, jusqu'à la mainlevée.</p>
+          </div>
+          <div class="cine-ch cine-ch--title" data-from="0.625" data-to="0.775">
+            <p class="cine-eyebrow"><b>02</b><i></i><span data-i18n="cine.c2.eyebrow">Mer</span></p>
+            <p class="cine-title" data-i18n="cine.c2.title">Fret maritime</p>
+            <p class="cine-text" data-i18n="cine.c2.text">FCL et LCL au départ de Radès et de La Goulette avec By Ocean and Air Transport, le dédouanement intégré.</p>
+          </div>
+          <div class="cine-ch cine-ch--title" data-from="0.79" data-to="0.9">
+            <p class="cine-eyebrow"><b>03</b><i></i><span data-i18n="cine.c3.eyebrow">Air</span></p>
+            <p class="cine-title" data-i18n="cine.c3.title">Fret aérien</p>
+            <p class="cine-text" data-i18n="cine.c3.text">Express ou standard depuis Tunis-Carthage : colis et palettes, de la piste jusqu'à votre porte.</p>
+          </div>
+          <div class="cine-ch cine-ch--end" data-from="0.885" data-to="0.962">
+            <p class="cine-end" data-i18n="cine.end">Un seul interlocuteur,<br><em>du départ usine à la mainlevée.</em></p>
+          </div>
+        </div>
+        <div class="cinema-progress" aria-hidden="true"><i></i></div>
+        <a class="cinema-skip" href="#accueil"><span data-i18n="cine.skip">Passer l'intro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></a>
+      </div>
+    </section>
+
     <!-- ============================================================ Hero -->
     <section class="hero" id="accueil" aria-labelledby="hero-title" data-rail="Accueil" data-rail-en="Home">
       <div class="hero-year" aria-hidden="true" data-parallax="-0.12">2010</div>
@@ -693,6 +738,8 @@
   <script src="assets/js/canvas-flow.js" defer></script>
   <script src="assets/js/canvas-ocean.js" defer></script>
   <script src="assets/js/core.js" defer></script>
+  <script src="assets/js/cinema.js" defer></script>
   <script src="assets/js/scroll.js" defer></script>
+  <script src="assets/js/fourd.js" defer></script>
 </body>
 </html>

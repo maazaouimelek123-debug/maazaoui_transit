@@ -135,6 +135,7 @@
       champ: canvas ? { taille: `${canvas.width}×${canvas.height}`, couverture: alpha, profondeur: $(".depth-field").style.getPropertyValue("--depth") } : "absent",
       chemin: { segments: $$(".journey-done").length, etats: $$(".journey-done").map((el) => (el.style.visibility === "hidden" ? "H" : el.style.clipPath.indexOf("url(") === 0 ? "A" : "D")).join("") },
       rail: $$(".rail-node").length,
+      film: MZ.cinema ? Object.assign({ plans: $$(".fourd-plane").length }, MZ.cinema.state()) : "absent",
       erreurs: (window.__mzErrors || []).slice(0, 10),
     };
   }
@@ -165,7 +166,7 @@
     if (s.loader !== "absent" && !s.loader.done) return ["bad", "L’écran de chargement n’est jamais parti : transmettez le rapport."];
     if (r.apresDefilement && r.apresDefilement.blocsEclos === 0) return ["bad", "Effets actifs mais aucun bloc n’éclot au défilement : défaut à analyser, transmettez le rapport."];
     const mobile = !e.pointeurFin;
-    return ["ok", `Tout est actif chez vous (version ${e.build}) : hero qui recule, champ de particules, blocs qui éclosent depuis les points dorés, chemin pointillé.${mobile ? " Sur écran tactile, le défilement inertiel est désactivé par conception et le champ est plus discret." : ""} Si cela ne correspond pas à ce que vous voyez, décrivez-le avec ce rapport.`];
+    return ["ok", `Tout est actif chez vous (version ${e.build}) : hero qui recule, champ de particules, blocs qui éclosent depuis les points dorés, chemin pointillé${typeof s.film === "object" && s.film.mode === "3d" ? ", film 4D en ouverture (nuages, port de Radès, conteneurs, navire, piste)" : ""}.${mobile ? " Sur écran tactile, le défilement inertiel est désactivé par conception et le champ est plus discret." : ""} Si cela ne correspond pas à ce que vous voyez, décrivez-le avec ce rapport.`];
   }
 
   /* ---------------------------------------------------------------- séquence */
@@ -180,10 +181,11 @@
       await wait(400);
       report.site = site();
       const max = Math.max(1, html.scrollHeight - innerHeight);
-      window.scrollTo({ top: Math.round(max * 0.45), behavior: "instant" });
+      const from = window.MZ && MZ.cinema && MZ.cinema.end ? Math.min(max, MZ.cinema.end()) : 0; // après le film d'ouverture
+      window.scrollTo({ top: Math.round(from + (max - from) * 0.45), behavior: "instant" });
       await raf(6); await wait(900);
       report.apresDefilement = site();
-      window.scrollTo({ top: Math.round(max * 0.9), behavior: "instant" });
+      window.scrollTo({ top: Math.round(from + (max - from) * 0.9), behavior: "instant" });
       await raf(6); await wait(900);
       report.basDePage = site();
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -203,6 +205,7 @@
       ["Fenêtre", `${report.env.fenetre} · ×${report.env.dpr} · tactile ${report.env.touch}`],
       ["Réduction des animations", report.env.reducedMotion ? "OUI (effet désactivé)" : "non"],
       ["Effets (classe fx)", /\bfx\b/.test(report.site.classesHtml) ? "actifs" : "inactifs"],
+      ["Film 4D", typeof report.site.film === "object" ? `${{ "3d": "3D temps réel", video: "vidéo", poster: "affiche (3D indisponible)", loading: "en chargement" }[report.site.film.mode] || report.site.film.mode} · ${report.site.film.plans} plans en volume` : "absent (mouvement réduit ou désactivé)"],
       ["Blocs éclos après défilement", report.apresDefilement ? `${report.apresDefilement.blocsEclos} / ${report.apresDefilement.blocs}` : "?"],
       ["Champ de particules", report.site.champ === "absent" ? "absent" : `couverture ${report.basDePage && report.basDePage.champ.couverture}`],
       ["Erreurs de script", report.site.erreurs.length ? report.site.erreurs.map((x) => x.m).join(" | ") : "aucune"],

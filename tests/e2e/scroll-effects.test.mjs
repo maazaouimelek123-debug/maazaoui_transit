@@ -89,6 +89,103 @@ await run([
     },
   },
   {
+    name: "index-film-4d",
+    url: "index.html",
+    viewport: { width: 1440, height: 900 },
+    fn: async (page) => {
+      // Film d'ouverture : section épinglée, 3D prête (ou affiche si WebGL / le CDN manque)
+      const a = await page.evaluate(() => ({
+        cls: document.documentElement.className,
+        state: window.MZ && MZ.cinema && MZ.cinema.state(),
+        sticky: getComputedStyle(document.querySelector(".cinema-stage")).position,
+        height: document.querySelector("#film").offsetHeight,
+        skip: document.querySelector(".cinema-skip").getAttribute("href"),
+        planes: document.querySelectorAll(".fourd-plane").length,
+      }));
+      console.log("film mount:", a);
+      // La page doit être visible (régression : une classe « cinema » sur <html> masquait tout le document)
+      const shown = await page.evaluate(() => ({ html: getComputedStyle(document.documentElement).display, body: document.body.offsetHeight }));
+      assert(shown.html !== "none" && shown.body > 900 * 5, "page hidden: " + JSON.stringify(shown));
+      assert(/\bhas-film\b/.test(a.cls) && /\bfourd\b/.test(a.cls) && a.sticky === "sticky" && a.height > 900 * 5 && a.skip === "#accueil" && a.planes >= 5, "film not mounted");
+      assert(a.state.mode === "3d" || a.state.mode === "poster", "film mode: " + a.state.mode);
+      if (a.state.mode === "3d") {
+        const still = await page.evaluate(() => MZ.cinema.still(0.47, 320, 180).length);
+        assert(still > 4000, "film frame empty");
+      }
+      // Mi-parcours : le chapitre « Dédouanement » est à l'écran, le rail de la page s'efface
+      const film = await page.evaluate(() => ({ top: document.querySelector("#film").offsetTop, run: document.querySelector("#film").offsetHeight - innerHeight }));
+      await scrollTo(page, film.top + film.run * 0.51);
+      await page.waitForTimeout(1600);
+      const mid = await page.evaluate(() => {
+        const ch = [...document.querySelectorAll(".cine-ch")].find((c) => /Dédouanement/.test(c.textContent));
+        return { p: MZ.cinema.state().p, op: Number(ch.style.opacity), on: document.documentElement.classList.contains("cinema-on"), rail: getComputedStyle(document.querySelector(".rail")).opacity };
+      });
+      console.log("film mid:", mid);
+      assert(mid.p > 0.45 && mid.p < 0.56 && mid.op > 0.8 && mid.on && Number(mid.rail) < 0.1, "film chapter not shown mid-way");
+      await shot(page, "fx-film-mid");
+      // Sortie : le point jaune s'ouvre en cercle (masque troué) et dévoile le hero, déjà dessous
+      await scrollTo(page, film.top + film.run * 0.965);
+      await page.waitForTimeout(1600);
+      const opening = await page.evaluate(() => ({
+        cls: document.querySelector("#film").className,
+        mask: document.querySelector(".cinema-stage").style.maskImage || document.querySelector(".cinema-stage").style.webkitMaskImage,
+        ring: Number(document.querySelector(".cinema-ring").style.opacity),
+        heroTop: document.querySelector("#accueil").getBoundingClientRect().top,
+        on: document.documentElement.classList.contains("cinema-on"),
+      }));
+      console.log("film opening:", opening);
+      assert(/is-opening/.test(opening.cls) && /radial-gradient/.test(opening.mask) && opening.ring > 0 && opening.heroTop < 900 && !opening.on, "film does not open onto the page");
+      await shot(page, "fx-film-opening");
+      // « Passer l'intro » depuis le début : la caméra se place sans rejouer le film, la page est cliquable
+      await scrollTo(page, 0);
+      await page.waitForTimeout(600);
+      await page.click(".cinema-skip");
+      await page.waitForTimeout(1800);
+      const skipped = await page.evaluate(() => { const el = document.elementFromPoint(innerWidth / 2, innerHeight / 2); return { sp: MZ.cinema.state().sp, hit: !!(el && el.closest("#accueil")) }; });
+      console.log("after skip:", skipped);
+      assert(skipped.sp > 0.97 && skipped.hit, "skip intro does not reveal the page");
+      // Après le film : la page reprend (plus de cinema-on)
+      const end = await page.evaluate(() => MZ.cinema.end());
+      await scrollTo(page, end + 200);
+      await page.waitForTimeout(500);
+      assert(!(await page.evaluate(() => document.documentElement.classList.contains("cinema-on"))), "film still covering after its end");
+      // Au repos, une section à l'écran est à plat (l'inclinaison de vitesse est retombée)
+      await scrollTo(page, end + 2400);
+      await page.waitForTimeout(900);
+      const rest = await page.evaluate(() => [...document.querySelectorAll(".fourd-plane")].filter((s) => { const r = s.getBoundingClientRect(); return r.top < innerHeight * 0.4 && r.bottom > innerHeight * 0.6; }).map((s) => s.style.transform));
+      console.log("planes at rest:", rest);
+      assert(rest.length >= 1 && rest.every((t) => t === ""), "planes still tilted at rest");
+      // Sortie par le haut : la section repart dans la profondeur
+      const exitTop = await page.evaluate(() => { const s = document.querySelector("#disponibilite"); return s.getBoundingClientRect().bottom + window.scrollY - window.innerHeight * 0.2; });
+      await scrollTo(page, exitTop);
+      await page.waitForTimeout(700);
+      const exit = await page.evaluate(() => { const s = document.querySelector("#disponibilite"); return { t: s.style.transform, o: s.style.opacity }; });
+      console.log("exiting section:", exit);
+      assert(/rotateX\((1\d|2\d)\./.test(exit.t) && Number(exit.o) < 0.65, "exiting section not receding");
+      await shot(page, "fx-4d-exit");
+      // Le chemin pointillé est mesuré à plat malgré les plans inclinés (reconstruit ici, section en sortie)
+      await page.evaluate(() => window.dispatchEvent(new Event("resize")));
+      await page.waitForTimeout(400);
+      const flat = await page.evaluate(() => {
+        // Extrémités de chaque courbe du chemin (M x y, puis tous les 3 points de « C »)
+        const nums = document.querySelector(".journey-dots").getAttribute("d").replace(/[MC,]/g, " ").trim().split(/\s+/).map(Number);
+        const pairs = [];
+        for (let i = 0; i < nums.length; i += 2) pairs.push([nums[i], nums[i + 1]]);
+        const ends = [pairs[0]];
+        for (let i = 3; i < pairs.length; i += 3) ends.push(pairs[i]);
+        const base = document.querySelector(".journey").getBoundingClientRect().top + window.scrollY;
+        const seeds = MZ.fourd.neutral(() =>
+          [...document.querySelectorAll(".curtain .seed")].map((el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2 + window.scrollY - base]; }).sort((p, q) => p[1] - q[1])
+        );
+        return { n: ends.length, seeds: seeds.length, maxDiff: Math.max(...ends.map((e, i) => Math.hypot(e[0] - seeds[i][0], e[1] - seeds[i][1]))) };
+      });
+      console.log("journey vs flat seeds:", flat);
+      assert(flat.n === flat.seeds && flat.maxDiff <= 2, "journey not measured flat");
+      const sw = await page.evaluate(() => document.documentElement.scrollWidth);
+      assert(sw <= 1440, "horizontal overflow " + sw);
+    },
+  },
+  {
     name: "index-anchor",
     url: "index.html#contact",
     viewport: { width: 1366, height: 768 },
@@ -149,9 +246,9 @@ await run([
     viewport: { width: 1366, height: 768 },
     context: { reducedMotion: "reduce" },
     fn: async (page) => {
-      const r = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), seeds: document.querySelectorAll(".seed").length, hidden: [...document.querySelectorAll("#main [data-bloom], #main [data-reveal]")].filter((e) => getComputedStyle(e).opacity === "0").length }));
+      const r = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), fourd: document.documentElement.classList.contains("fourd"), film: !!document.querySelector("#film"), seeds: document.querySelectorAll(".seed").length, hidden: [...document.querySelectorAll("#main [data-bloom], #main [data-reveal]")].filter((e) => getComputedStyle(e).opacity === "0").length }));
       console.log("reduced motion:", r);
-      assert(!r.fx && r.seeds === 0 && r.hidden === 0, "reduced-motion fallback broken");
+      assert(!r.fx && !r.fourd && !r.film && r.seeds === 0 && r.hidden === 0, "reduced-motion fallback broken");
       // Bandeau « animations réduites » : visible, et « Activer les effets » force la plongée (choix mémorisé)
       const notice = await page.evaluate(() => { const n = document.querySelector(".fx-notice"); return { hidden: n.hidden, display: getComputedStyle(n).display, text: n.querySelector("p").textContent, btn: n.querySelector("[data-fx]").textContent }; });
       console.log("fx notice:", notice);
@@ -162,7 +259,8 @@ await run([
       const forced = await page.evaluate(() => ({ cls: document.documentElement.className, seeds: document.querySelectorAll(".seed").length, pref: localStorage.getItem("mz:fx"), btn: document.querySelector(".fx-notice [data-fx]").textContent, hidden: document.querySelector(".fx-notice").hidden }));
       console.log("forced on:", forced);
       assert(/\bfx\b/.test(forced.cls) && /\bfx-forced\b/.test(forced.cls) && forced.seeds === 12 && forced.pref === "on" && /calme/.test(forced.btn) && !forced.hidden, "forcing effects on failed");
-      await scrollTo(page, 2600);
+      // Effets forcés : le film d'ouverture est là aussi ; on vérifie les éclosions après lui.
+      await scrollTo(page, 2600 + (await page.evaluate(() => (window.MZ && MZ.cinema ? MZ.cinema.end() : 0))));
       await page.waitForTimeout(700);
       const bloomed = await page.evaluate(() => document.querySelectorAll("[data-bloom].is-bloomed").length);
       console.log("forced blooms:", bloomed);
@@ -194,9 +292,9 @@ await run([
       await page.addInitScript(() => { const orig = window.matchMedia; window.matchMedia = (q) => { if (q === "(max-width: 760px)") throw new Error("simulated-scroll"); return orig.call(window, q); }; });
       await page.reload({ waitUntil: "load" });
       await page.waitForTimeout(2600);
-      const b = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), hiddenBlooms: [...document.querySelectorAll("#main [data-bloom]")].filter((e) => getComputedStyle(e).opacity === "0").length, errors: (window.__mzErrors || []).map((x) => x.m) }));
+      const b = await page.evaluate(() => ({ fx: document.documentElement.classList.contains("fx"), fourd: document.documentElement.classList.contains("fourd"), hiddenBlooms: [...document.querySelectorAll("#main [data-bloom]")].filter((e) => getComputedStyle(e).opacity === "0").length, errors: (window.__mzErrors || []).map((x) => x.m) }));
       console.log("scroll init error:", b);
-      assert(!b.fx && b.hiddenBlooms === 0 && /simulated-scroll/.test(b.errors.join(" ")), "page left empty after a scroll.js init error");
+      assert(!b.fx && !b.fourd && b.hiddenBlooms === 0 && /simulated-scroll/.test(b.errors.join(" ")), "page left empty after a scroll.js init error");
     },
   },
 ]);

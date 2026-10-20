@@ -1,0 +1,13 @@
+/* =============================================================================
+   4D — plans inclinés après le film (actifs sous html.fourd)
+   ========================================================================== */
+
+/* Mesure « à plat » (chemin pointillé, graines) : transformations neutralisées. */
+html.fourd-measure .fourd-plane {
+  transform: none !important;
+}
+
+html.fourd .fourd-plane {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}

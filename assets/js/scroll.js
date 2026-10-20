@@ -12,6 +12,9 @@
      • teinte d'ambiance [data-tint] (variables sur <html>)
      • champ persistant .depth-field (profondeur), éclosion [data-bloom]
        depuis une graine jaune, rail de parcours [data-rail]
+     • html.fourd : hero et éclosions inclinés en profondeur ; le registre
+       d'effets est exposé (MZ.scroll.register) pour les plans de fourd.js ;
+       la profondeur du champ démarre après le film (cinema.js)
    Tout est désactivé si l'utilisateur préfère réduire les animations ; sans
    JavaScript, la mise en page reste la mise en page classique (html sans .fx).
    ========================================================================== */
@@ -69,6 +72,9 @@
   if (!MOTION.enabled || UI.scrollEffects === false) return;
   html.classList.add("fx");
   if (MOTION.systemReduced) html.classList.add("fx-forced");
+  // Effet 4D (fourd.js) : espace en perspective et contenu en volume. Retiré si fourd.js échoue.
+  if (UI.fourD !== false) html.classList.add("fourd");
+  const is4d = () => html.classList.contains("fourd");
   try {
 
   /* ------------------------------------------------- Défilement inertiel */
@@ -172,9 +178,15 @@
       const shift = sticky ? -90 : -64;
       const shrink = sticky ? 0.07 : 0.1;
       const fade = sticky ? 1.25 : 1;
+      // 4D : le hero bascule en arrière et s'enfonce dans l'espace au lieu de seulement reculer.
+      const deep = is4d();
+      const sink = deep ? (sticky ? 140 : 240) : 0;
+      const lean = deep ? (sticky ? 10 : 18) : 0;
       return () => {
         if (container) {
-          container.style.transform = `translate3d(0, ${(hp * shift).toFixed(1)}px, 0) scale(${(1 - hp * shrink).toFixed(4)})`;
+          container.style.transform = deep
+            ? `perspective(1200px) translate3d(0, ${(hp * shift).toFixed(1)}px, ${(-hp * sink).toFixed(1)}px) rotateX(${(hp * lean).toFixed(2)}deg) scale(${(1 - hp * shrink).toFixed(4)})`
+            : `translate3d(0, ${(hp * shift).toFixed(1)}px, 0) scale(${(1 - hp * shrink).toFixed(4)})`;
           container.style.opacity = clamp(1 - hp * fade, 0, 1).toFixed(3);
         }
         if (foot) {
@@ -371,8 +383,10 @@
     const canvas = field.querySelector("canvas");
     let last = "";
     register((y) => {
-      const max = Math.max(1, html.scrollHeight - vh);
-      const eased = 1 - Math.pow(1 - clamp(y / max, 0, 1), 1.7);
+      // La plongée commence après le film d'introduction (cinema.js), s'il est présent.
+      const start = MZ.cinema && MZ.cinema.end ? MZ.cinema.end() : 0;
+      const max = Math.max(1, html.scrollHeight - vh - start);
+      const eased = 1 - Math.pow(1 - clamp((y - start) / max, 0, 1), 1.7);
       const v = eased.toFixed(2); // pas de 1 % : imperceptible, et bien moins de recompositions
       if (v === last) return null;
       last = v;
@@ -466,6 +480,7 @@
         return { r, p: Math.round(p * 1000) / 1000 };
       });
       const small = mobile.matches;
+      const lean = is4d() ? (small ? 10 : 16) : 0; // 4D : le bloc arrive incliné, à plat une fois éclos
       return () => {
         items.forEach((it, i) => {
           const { r, p } = results[i];
@@ -485,7 +500,7 @@
             const dy = small ? 28 : 48;
             const sc = small ? 0.72 + p * 0.28 : 0.6 + p * 0.4;
             el.classList.remove("is-bloomed");
-            el.style.transform = `perspective(${small ? 900 : 1400}px) translate3d(0, ${(q * dy).toFixed(1)}px, ${(q * dz).toFixed(1)}px) scale(${sc.toFixed(4)})`;
+            el.style.transform = `perspective(${small ? 900 : 1400}px) translate3d(0, ${(q * dy).toFixed(1)}px, ${(q * dz).toFixed(1)}px)${lean ? ` rotateX(${(q * lean).toFixed(2)}deg)` : ""} scale(${sc.toFixed(4)})`;
             el.style.opacity = Math.min(1, p * 1.15).toFixed(3);
             el.style.clipPath = `circle(${(p * 125).toFixed(1)}% at 50% ${el.style.getPropertyValue("--oy") || "50%"})`;
           }
@@ -546,10 +561,14 @@
       const seeds = $$(".seed", curtain);
       if (seeds.length < 2) return;
       base = curtain.getBoundingClientRect().top + window.scrollY;
-      const pts = seeds.map((el) => {
-        const r = el.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 + window.scrollY - base };
-      });
+      // Les plans 4D inclinent les sections : on mesure les graines à plat.
+      const flat = (MZ.fourd && MZ.fourd.neutral) || ((fn) => fn());
+      const pts = flat(() =>
+        seeds.map((el) => {
+          const r = el.getBoundingClientRect();
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2 + window.scrollY - base };
+        })
+      );
       pts.sort((p1, p2) => p1.y - p2.y);
       const f = (n) => n.toFixed(1);
       const cubic = (p0, p1, p2, p3) => `M ${f(p0.x)} ${f(p0.y)} C ${f(p1.x)} ${f(p1.y)}, ${f(p2.x)} ${f(p2.y)}, ${f(p3.x)} ${f(p3.y)}`;
@@ -723,10 +742,10 @@
     else window.addEventListener("load", () => setTimeout(measure, 1500));
   })();
 
-  MZ.scroll = { refresh: () => { dirty = true; } };
+  MZ.scroll = { refresh: () => { dirty = true; }, register };
   } catch (e) {
     // Une erreur d'initialisation ne doit jamais laisser la page vide : on retire les effets.
-    html.classList.remove("fx", "fx-forced", "smooth");
+    html.classList.remove("fx", "fx-forced", "smooth", "fourd");
     if (window.console) console.error("[MZ] scroll", e);
     if (window.__mzErrors) window.__mzErrors.push({ m: "scroll: " + (e && e.message), s: "scroll.js", l: 0 });
   }

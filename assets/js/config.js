@@ -20,6 +20,21 @@ MZ.SITE = {
     smoothScroll: true,
     /* Effets pilotés par le défilement (hero épinglé, cartes empilées…). */
     scrollEffects: true,
+    /* Contenu en volume après le film : sections inclinées selon la vitesse de
+       défilement, sortie en profondeur, hero qui bascule (nécessite scrollEffects). */
+    fourD: true,
+  },
+
+  /* ----------------------------------------------- Film d'introduction (4D) */
+  cinema: {
+    /* Film 3D piloté par le défilement en haut de la page d'accueil : nuages à l'aube,
+       port de Radès, conteneurs, porte-conteneurs, piste de Tunis-Carthage. */
+    enabled: true,
+    /* Durée du film, en hauteurs d'écran de défilement (7,5 ≈ 7 coups de molette par écran). */
+    length: 7.5,
+    /* Facultatif : vidéo lue image par image au défilement à la place de la 3D
+       (ex. "assets/video/voyage.mp4" ; voir docs/effet-4d-cinema.md pour la préparer). */
+    video: "",
   },
 
   /* ---------------------------------------------------------------- Marque */

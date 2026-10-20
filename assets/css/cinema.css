@@ -1,0 +1,437 @@
+/* =============================================================================
+   CINÉMA — film d'introduction piloté par le défilement (actif sous html.has-film)
+   ========================================================================== */
+
+section.cinema {
+  display: none;
+}
+
+html.has-film section.cinema {
+  display: block;
+  position: relative;
+  z-index: 2;
+  height: 750vh; /* remplacé par la longueur configurée (cinema.length) */
+  /* Le dernier écran du film recouvre le hero : quand le film s'ouvre, la page est déjà dessous. */
+  margin-bottom: -100vh;
+}
+
+/* Pendant l'ouverture, les clics traversent le film vers la page dévoilée ; « Passer l'intro »
+   et la progression du film s'effacent (le bouton « retour en haut » reprend sa place). */
+.cinema.is-opening .cinema-stage {
+  pointer-events: none;
+}
+
+.cinema-skip,
+.cinema-progress {
+  transition: opacity 0.35s, visibility 0.35s;
+}
+
+.cinema.is-opening .cinema-skip,
+.cinema.is-opening .cinema-progress {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* La scène : plein écran, épinglée pendant toute la durée du film */
+.cinema-stage {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  /* Affiche d'attente (avant la 3D, ou si elle est indisponible) : aube au-dessus des nuages */
+  background:
+    radial-gradient(60% 40% at 58% 38%, rgba(255, 196, 140, 0.55), transparent 70%),
+    linear-gradient(180deg, #1f3158 0%, #6b5d78 38%, #e3a27a 52%, #b9a3a6 60%, #7c7486 100%);
+  isolation: isolate;
+}
+
+.cinema-canvas,
+.cinema-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-out);
+}
+
+.cinema.is-ready .cinema-canvas,
+.cinema-video {
+  opacity: 1;
+}
+
+.cinema-speed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Étalonnage : vignette et dégradé bas pour la lisibilité des titres */
+.cinema-shade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(3, 5, 10, 0.55) 100%),
+    linear-gradient(0deg, rgba(4, 6, 12, 0.72) 0%, rgba(4, 6, 12, 0.18) 34%, transparent 52%),
+    linear-gradient(180deg, rgba(4, 6, 12, 0.62) 0%, rgba(4, 6, 12, 0.25) 11%, transparent 22%); /* lisibilité de la navigation sur le ciel clair */
+}
+
+/* Sortie : le point jaune (comme les graines des blocs) puis l'anneau doré qui ouvre le film */
+.cinema-seed {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 26px 6px rgba(var(--accent-rgb), 0.65);
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+
+.cinema-seed::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  bottom: -3px;
+  left: -3px;
+  inset: -3px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.45);
+  animation: seed-pulse 2.4s ease-out infinite;
+}
+
+.cinema-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent-2);
+  box-shadow: 0 0 28px 4px rgba(var(--accent-rgb), 0.55), inset 0 0 22px rgba(var(--accent-rgb), 0.4);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ----------------------------------------------------------- Surimpressions */
+.cinema-chapters {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cine-ch {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  will-change: opacity, transform;
+  color: #f6f1ea;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Ouverture : « Défiler » en bas, au centre */
+.cine-ch--intro {
+  left: 50%;
+  bottom: 5.5vh;
+  margin-left: -80px;
+  width: 160px;
+  text-align: center;
+}
+
+.cine-scroll {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(255, 246, 236, 0.85);
+}
+
+.cine-scroll i {
+  display: block;
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(180deg, rgba(255, 246, 236, 0.9), transparent);
+  transform-origin: top;
+  animation: cine-drop 2.2s var(--ease-out) infinite;
+}
+
+@keyframes cine-drop {
+  0% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+  70% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+/* Titre de marque, au centre, très grand (le moment « VELA ARMONI » de la référence) */
+.cine-ch--brand {
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin-top: -0.75em;
+  text-align: center;
+  font-size: clamp(42px, 9vw, 176px); /* « MAAZAOUI TRANSIT » ≈ 9,3 em : environ 84 % de la largeur */
+}
+
+.cine-kicker {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.95vw, 13px);
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: #f3d98b;
+}
+
+.cine-brand {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 1em;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #fff6ea 46%, rgba(255, 238, 220, 0.62) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 22px rgba(255, 214, 160, 0.25));
+}
+
+/* Chapitres : bas gauche, sur-titre, titre, deux lignes, filet */
+.cine-ch--title {
+  left: max(var(--gutter), calc((100vw - var(--container)) / 2));
+  bottom: 11vh;
+  max-width: min(560px, 100vw - 2 * var(--gutter));
+}
+
+.cine-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 246, 236, 0.75);
+}
+
+.cine-eyebrow b {
+  color: #f3d98b;
+  font-weight: 500;
+}
+
+.cine-eyebrow i {
+  display: block;
+  width: 34px;
+  height: 1px;
+  background: rgba(243, 217, 139, 0.8);
+}
+
+.cine-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(46px, 7.2vw, 118px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.cine-text {
+  margin: 1.1rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(14px, 1.15vw, 16px);
+  line-height: 1.6;
+  color: rgba(246, 241, 234, 0.82);
+}
+
+.cine-text::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 1px;
+  margin-bottom: 1rem;
+  background: rgba(246, 241, 234, 0.45);
+}
+
+/* Fin : promesse centrée, au-dessus du point jaune qui va s'ouvrir */
+.cine-ch--end {
+  left: 0;
+  right: 0;
+  top: 36%;
+  transform-origin: 50% 50%;
+  margin-top: -1.2em;
+  padding: 0 var(--gutter);
+  text-align: center;
+}
+
+.cine-end {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(30px, 4.6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.cine-end em {
+  font-style: italic;
+  color: #f3d98b;
+}
+
+/* ------------------------------------------------- Progression et sortie */
+.cinema-progress {
+  position: absolute;
+  right: clamp(14px, 2vw, 28px);
+  top: 50%;
+  height: 34vh;
+  width: 1px;
+  margin-top: -17vh;
+  background: rgba(255, 246, 236, 0.22);
+  pointer-events: none;
+}
+
+.cinema-progress i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: #f6f1ea;
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+.cinema-progress b {
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 1px;
+  background: rgba(255, 246, 236, 0.5);
+  transition: background 0.3s, width 0.3s, left 0.3s;
+}
+
+.cinema-progress b.is-on {
+  left: -6px;
+  width: 13px;
+  background: #f3d98b;
+}
+
+.cinema-skip {
+  position: absolute;
+  right: clamp(14px, 2vw, 28px);
+  bottom: 4.5vh;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 246, 236, 0.28);
+  background: rgba(6, 9, 16, 0.32);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 246, 236, 0.88);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.cinema-skip:hover,
+.cinema-skip:focus-visible {
+  background: rgba(6, 9, 16, 0.6);
+  border-color: rgba(243, 217, 139, 0.7);
+}
+
+.cinema-skip svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Pendant le film : le rail et le bouton « retour en haut » s'effacent (la ligne du film et
+   « Passer l'intro » les remplacent ; le bouton chevauchait « Passer l'intro » en bas à droite). */
+html.cinema-on .rail,
+html.cinema-on .to-top {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.rail {
+  transition: opacity 0.4s;
+}
+
+@media (max-width: 760px) {
+  /* Titre de marque : sur deux lignes plutôt que coupé par les bords */
+  .cine-ch--brand {
+    font-size: clamp(40px, 15vw, 96px);
+    margin-top: -1.1em;
+    padding: 0 var(--gutter);
+  }
+
+  .cine-brand {
+    white-space: normal;
+    line-height: 0.92;
+  }
+
+  .cine-kicker {
+    letter-spacing: 0.22em;
+    line-height: 1.7;
+  }
+
+  .cine-ch--title {
+    bottom: 13vh;
+  }
+
+  .cinema-progress {
+    height: 26vh;
+    margin-top: -13vh;
+  }
+
+  .cinema-skip {
+    bottom: 3.2vh;
+  }
+
+  .cine-ch--intro {
+    bottom: 9vh;
+  }
+}

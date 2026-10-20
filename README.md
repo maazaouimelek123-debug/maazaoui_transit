@@ -15,6 +15,8 @@ Site statique (HTML / CSS / JavaScript, sans framework ni dépendance) présenta
 | Design génératif | Champ de flux (courants / corridors) sur la page douane, vagues et trajectoire aérienne sur la page transport. Pause automatique hors écran, rendu statique si l'utilisateur préfère réduire les animations. |
 | Expérience de défilement | Défilement inertiel à la molette, hero qui recule dans la profondeur, cartes empilées pour le parcours, section de services horizontale épinglée (transport), texte qui s'allume mot à mot, teinte d'ambiance évolutive, barre de progression. Désactivable dans `config.js` (`ui.smoothScroll`, `ui.scrollEffects`) et automatiquement coupé si l'utilisateur préfère réduire les animations. |
 | Plongée dans le champ | Sur la page d'accueil, le champ de particules est une couche fixe derrière tout le contenu : il s'accélère et zoome à mesure que l'on descend. Chaque bloc (`data-bloom`) naît d'un point jaune pulsant et s'ouvre en cercle vers le lecteur, avec une salve de particules dans le champ au moment de l'éclosion. Un chemin pointillé doré relie les points d'éclosion à travers la page et s'illumine au passage ; un rail à gauche (`data-rail`) sert de navigation. Avec la profondeur, le courant du champ devient radial (sensation d'avancer). |
+| Effet 4D : le film d'ouverture | Trois dimensions d'espace, et le défilement comme quatrième. Le haut de l'accueil est une scène plein écran épinglée (`#film`, `cinema.js`, Three.js) : défiler fait avancer une caméra dans un plan-séquence en 3D temps réel, le voyage d'une marchandise. Au-dessus des nuages à l'aube, plongée à travers les nuages, le port de Radès au crépuscule sous le titre **MAAZAOUI TRANSIT**, puis trois chapitres titrés en bas à gauche : *Dédouanement* (au ras des piles de conteneurs), *Fret maritime* (le long d'un porte-conteneurs), *Fret aérien* (sur la piste de Tunis-Carthage, décollage). Inertie de caméra, traînées de vitesse, ligne de progression à droite, « Passer l'intro » (la caméra se place directement, sans rejouer le film). À la fin, comme les blocs de la page, un point jaune naît au centre et s'ouvre en cercle doré sur le reste du site. Remonter fait reculer le film. Cahier des charges, storyboard et passage à une vidéo réelle : [`docs/effet-4d-cinema.md`](docs/effet-4d-cinema.md). Réglages dans `config.js` (`cinema.enabled`, `cinema.length`, `cinema.video`). |
+| Contenu en volume | Après le film, les sections s'inclinent selon la vitesse de défilement et repartent dans la profondeur en sortant par le haut ; le hero bascule en arrière, les blocs arrivent inclinés (`fourd.js`, désactivable par `ui.fourD`). |
 | Contact sans serveur | Le formulaire compose un e-mail ou un message WhatsApp prêt à envoyer : aucune donnée n'est stockée. Boutons « copier » pour le téléphone, l'e-mail et le code Plus. Carte Google Maps intégrée depuis les coordonnées de la configuration, sans clé API. |
 | Référencement | Balises Open Graph, données structurées (schema.org `LocalBusiness` / `Organization`), `sitemap.xml`, `robots.txt`, manifeste. |
 | Accessibilité | Lien d'évitement, navigation clavier, libellés ARIA, `prefers-reduced-motion`, contrastes vérifiés sur fond sombre. |
@@ -55,7 +57,8 @@ Modifier `assets/js/config.js` directement sur la branche par défaut (horaires,
 
 - Si le système du visiteur demande la réduction des animations (iOS « Réduire les animations », Android « Supprimer les animations », Windows « Effets d'animation » désactivés), le site s'affiche en version calme et un bandeau discret propose **« Activer les effets »**. Le choix est mémorisé (`localStorage` `mz:fx` = `on` ou `off`) et le bandeau permet de revenir au mode calme.
 - Si l'appareil peine (moins d'environ 22 images par seconde mesurées après le chargement), la classe `lite` retire le grain en fusion et allège le flou de fond.
-- Une erreur de script au démarrage ne laisse jamais la page vide : chaque module de `core.js` est isolé, et un échec dans `scroll.js` retire la classe `fx` (contenu visible sans effets). Les erreurs sont consignées pour le diagnostic ci-dessous.
+- Une erreur de script au démarrage ne laisse jamais la page vide : chaque module de `core.js` est isolé, et un échec dans `scroll.js` retire la classe `fx` (contenu visible sans effets). Un échec dans `fourd.js` retire seulement la classe `fourd` : la plongée classique reste. Si Three.js ne se charge pas (réseau, WebGL absent), le film est retiré et la page commence au hero ; si le visiteur est déjà dans le film, une affiche (ciel d'aube) garde les titres. Les erreurs sont consignées pour le diagnostic ci-dessous.
+- Sans JavaScript ou avec réduction des animations, il n'y a pas de film : la page commence au hero, comme avant.
 - Les raccourcis CSS récents (`inset`, `padding-block`, `margin-inline`, `aspect-ratio`) ont un repli explicite pour les navigateurs antérieurs à 2021.
 
 ## Diagnostic à distance
@@ -83,6 +86,8 @@ assets/css/components.css  Composants partagés (navigation, cartes, portail, fo
 assets/css/customs.css     Mise en page de la page douane
 assets/css/ocean.css       Mise en page de la page transport
 assets/css/scroll.css      Effets de défilement (actifs sous html.fx)
+assets/css/fourd.css       Plans inclinés après le film (actifs sous html.fourd)
+assets/css/cinema.css      Film d'ouverture : scène, titres, progression (actifs sous html.has-film)
 assets/js/config.js        ★ Données métier modifiables
 assets/js/i18n.js          Dictionnaire anglais et bascule de langue
 assets/js/availability.js  Moteur d'horaires (fuseau, saisons, fériés)
@@ -90,6 +95,9 @@ assets/js/canvas-flow.js   Animation « champ de flux »
 assets/js/canvas-ocean.js  Animation « vagues et trajectoire aérienne »
 assets/js/core.js          Orchestration de l'interface
 assets/js/scroll.js        Moteur des effets de défilement (une seule boucle rAF)
+assets/js/cinema.js        Effet 4D : film 3D piloté par le défilement (Three.js), variante vidéo
+assets/js/fourd.js         Sections en volume après le film
+docs/effet-4d-cinema.md    Cahier des charges de l'effet 4D (analyse de la référence, storyboard)
 ```
 
 ## Limites connues
